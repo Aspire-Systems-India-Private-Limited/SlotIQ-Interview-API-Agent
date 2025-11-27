@@ -1,28 +1,15 @@
-using AutoMapper;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
-using Moq;
 using SlotIQ.Interview.API.Models;
 using SlotIQ.Interview.Common.Enums;
 using SlotIQ.Interview.Common.Models;
-using SlotIQ.Interview.Logic.Commands;
-using SlotIQ.Interview.Logic.Dtos;
-using SlotIQ.Interview.Logic.Handlers.Commands;
 
 namespace SlotIQ.Interview.UnitTests.Tests.Controllers;
 
+/// <summary>
+/// Tests for API models and response structures
+/// </summary>
 public class MemberEndpointsTests
 {
-    private readonly Mock<CreateMemberCommandHandler> _mockHandler;
-    private readonly Mock<IMapper> _mockMapper;
-    private readonly Mock<HttpContext> _mockHttpContext;
-
-    public MemberEndpointsTests()
-    {
-        _mockHandler = new Mock<CreateMemberCommandHandler>();
-        _mockMapper = new Mock<IMapper>();
-        _mockHttpContext = new Mock<HttpContext>();
-    }
 
     [Fact]
     public void CreateMemberRequest_ValidProperties_ShouldMapCorrectly()

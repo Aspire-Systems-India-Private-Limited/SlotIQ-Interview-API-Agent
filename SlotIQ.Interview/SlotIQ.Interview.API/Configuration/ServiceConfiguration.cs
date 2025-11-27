@@ -1,7 +1,11 @@
 using FluentValidation;
+using SlotIQ.Interview.Common.Models;
 using SlotIQ.Interview.Data;
 using SlotIQ.Interview.Data.Repositories;
 using SlotIQ.Interview.Data.Repositories.Contracts;
+using SlotIQ.Interview.Logic;
+using SlotIQ.Interview.Logic.Commands;
+using SlotIQ.Interview.Logic.Dtos;
 using SlotIQ.Interview.Logic.Handlers.Commands;
 using SlotIQ.Interview.Logic.Validators;
 
@@ -24,6 +28,8 @@ public static class ServiceConfiguration
 
         // Command Handlers
         services.AddScoped<CreateMemberCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateMemberCommand, Result<MemberDto>>>(sp => 
+            sp.GetRequiredService<CreateMemberCommandHandler>());
 
         // Validators
         services.AddValidatorsFromAssemblyContaining<CreateMemberDtoValidator>();
