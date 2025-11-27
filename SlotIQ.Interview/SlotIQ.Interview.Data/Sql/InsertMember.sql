@@ -1,0 +1,34 @@
+INSERT INTO Members (
+    MemberID,
+    UserName,
+    FirstName,
+    LastName,
+    Password,
+    EmailID,
+    PhoneNumber,
+    RoleID,
+    PracticeID,
+    IsActive,
+    CreatedDate,
+    ModifiedDate,
+    CreatedBy,
+    ModifiedBy,
+    Source
+)
+VALUES (
+    @MemberID,
+    @UserName,
+    @FirstName,
+    @LastName,
+    @Password,
+    @EmailID,
+    @PhoneNumber,
+    @RoleID,
+    @PracticeID,
+    @IsActive,
+    @CreatedDate,
+    @ModifiedDate,
+    @CreatedBy,
+    @ModifiedBy,
+    @Source
+);
