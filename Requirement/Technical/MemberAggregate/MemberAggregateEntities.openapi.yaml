@@ -1,0 +1,351 @@
+openapi: 3.0.3
+info:
+  title: SlotIQ Member Aggregate Entities
+  description: |
+    Member aggregate root and related entities for the SlotIQ interview system.
+    This is the single source of truth for all member-related entity definitions.
+  version: 1.0.0
+
+components:
+  schemas:
+    # Base Entity Pattern
+    BaseEntity:
+      type: object
+      description: Base entity pattern with audit fields
+      properties:
+        isActive:
+          type: boolean
+          description: Soft delete flag - true for active records, false for deleted
+        createdDate:
+          type: string
+          format: date-time
+          description: UTC timestamp when entity was created
+        modifiedDate:
+          type: string
+          format: date-time
+          description: UTC timestamp when entity was last modified
+        createdBy:
+          type: string
+          description: User ID who created the entity
+          minLength: 1
+          maxLength: 50
+        modifiedBy:
+          type: string
+          description: User ID who last modified the entity
+          minLength: 1
+          maxLength: 50
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+          description: Source system of the operation
+      required:
+        - isActive
+        - createdDate
+        - modifiedDate
+        - createdBy
+        - modifiedBy
+        - source
+
+    # Updated Enum Definitions
+    MemberRoleEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4, 5]
+      x-enumNames: [MasterAdmin, PracticeAdmin, TechPanelMember, TAAdmin, TAPanelMember]
+      description: Role identifier for member permissions and access control
+
+    SourceEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4, 5]
+      x-enumNames: [Web, Mobile, API, Thirdparty, Manual]
+      description: Source system making the change for audit tracking
+
+    RecruitmentPositionEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4]
+      x-enumNames: [SSEFullStack, Backend, ML, TL]
+      description: Panel qualification position types
+
+    ApplicableLevelEnum:
+      type: integer 
+      format: int32
+      enum: [1, 2, 3]
+      x-enumNames: [L1, L2, L3]
+      description: Experience level qualifications for panels
+
+    AvailabilityStatusEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4, 5]
+      x-enumNames: [Available, Blocked, Booked, Cancelled, Replanned]
+      description: Status of member availability slots
+
+    PermissionEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4, 5]
+      x-enumNames: [CanCreateMember, CanDeactivateMember, CanViewMembers, CanCreatePractice]
+      description: Permission flags for role-based access control
+
+    # Aggregate Root
+    Member:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          description: Member aggregate root entity
+          properties:
+            MemberID:
+              type: string
+              format: uuid
+              description: Unique identifier and aggregate root ID
+            UserName:
+              type: string
+              description: Active Directory username for login
+              minLength: 5
+              maxLength: 100
+              pattern: '^[a-zA-Z0-9._-]+$'
+            FirstName:
+              type: string
+              description: Member's first name
+              minLength: 5
+              maxLength: 100
+            LastName:
+              type: string
+              description: Member's last name
+              minLength: 5
+              maxLength: 100
+            Password:
+              type: string
+              description: Hashed password with complexity rules
+              writeOnly: true
+              minLength: 8
+              maxLength: 100
+            EmailID:
+              type: string
+              format: email
+              pattern: '^[a-zA-Z0-9._%+-]+@aspiresys\\.com$'
+              description: Official email address
+            PhoneNumber:
+              type: string
+              pattern: '^[0-9]{10}$'
+              description: Contact phone number
+              nullable: true
+            roleID:
+              type: integer
+              description: Reference to MemberRole entity
+              format: uuid
+            PracticeID:
+              type: string
+              format: uuid
+              description: Reference to Practice entity
+            PanelApplicabilities:
+              type: array
+              description: Collection of panel qualifications
+              items:
+                $ref: '#/components/schemas/MemberPanelApplicability'
+            AvailabilityPlans:
+              type: array
+              description: Collection of availability schedules
+              items:
+                $ref: '#/components/schemas/MemberAvailabilityPlan'
+          required:
+            - MemberID
+            - UserName
+            - FirstName
+            - LastName
+            - Password
+            - RoleID
+            - EmailID
+            - PracticeID
+
+    # Child Entities
+    MemberPanelApplicability:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          description: Panel qualification details for a member
+          properties:
+            panelID:
+              type: string
+              format: uuid
+              description: Unique identifier for panel qualification
+            memberID:
+              type: string
+              format: uuid
+              description: Reference to owning Member
+            recruitmentPositionID:
+              type : integer
+              description: Position qualified to interview for
+            applicableLevelID:
+              type : integer
+              description: Experience level qualified to assess
+          required:
+            - panelID
+            - memberID
+            - recruitmentPosition
+            - applicableLevelID
+
+    MemberAvailabilityPlan:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          description: Availability schedule for interviews
+          properties:
+            availabilityID:
+              type: string
+              format: uuid
+              description: Unique identifier for availability slot
+            memberID:
+              type: string
+              format: uuid
+              description: Reference to owning Member
+            availableDate:
+              type: string
+              format: date
+              description: Date of availability
+            availableTimeFrom:
+              type: string
+              format: time
+              description: Start time of slot
+            availableTimeTo:
+              type: string
+              format: time
+              description: End time of slot
+            status:
+              type : integer
+              description: Current slot status
+          required:
+            - availabilityID
+            - memberID
+            - availableDate
+            - availableTimeFrom
+            - availableTimeTo
+            - status
+
+    # Supporting Entities
+    Practice:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          description: Practice/department grouping
+          properties:
+            practiceID:
+              type: string
+              format: uuid
+              description: Unique identifier
+            name:
+              type: string
+              description: Practice name
+              minLength: 2
+              maxLength: 50
+            description:
+              type: string
+              description: Optional practice details
+              maxLength: 500
+              nullable: true
+          required:
+            - practiceID
+            - name
+
+    MemberRole:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          properties:
+            roleID:
+              type: integer
+            name:
+              type: string
+            displayName:
+              type: string
+          required:
+            - roleID
+            - name
+            - displayName
+            - isActive
+            - createdDate
+            - modifiedDate
+            - createdBy
+            - modifiedBy
+            - source
+   
+    RecruitmentPosition:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          properties:
+            recruitmentPositionID:
+              type: integer
+            name:
+              type: string
+              minLength: 5
+              maxLength: 20
+            displayName:
+              type: string
+              minLength: 5
+              maxLength: 50
+          required:
+            - recruitmentPositionID
+            - name
+            - displayName
+                      
+    ApplicableLevel:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          properties:
+            applicableLevelID:
+              type: integer
+            name :
+              type: string
+              minLength: 2
+              maxLength: 10
+            displayName:
+              type: string
+              minLength: 2
+              maxLength: 50
+          required:
+            - applicableLevelID
+            - name
+            - displayName
+
+    Permission:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object  
+          properties:
+            PermissionID:
+              type: integer
+            name:
+              type: string
+              minLength: 10
+              maxLength: 100
+            displayName:
+              type: string
+              minLength: 10
+              maxLength: 150
+          required:
+            - PermissionID
+            - name
+            - displayName
+
+    AvailabilityStatus:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          properties:
+            availabilityStatusID:
+              type: integer
+            name:
+              type: string
+              minLength: 2
+              maxLength: 100
+            displayName:
+              type: string
+              minLength: 2
+              maxLength: 150
+          required:
+            - availabilityStatusID
+            - name
+            - displayName

@@ -1,0 +1,1615 @@
+openapi: 3.0.3
+info:
+  title: SlotIQ Member Aggregate API (V1)
+  description: API for managing members, their panel qualifications, and availability in the SlotIQ interview system
+  version: 1.0.0
+  contact:
+    name: SlotIQ Team
+    email: slotiq@aspiresys.com
+
+servers:
+  - url: https://api.slotiq.com/v1
+    description: Production server
+  - url: https://dev-api.slotiq.com/v1
+    description: Development server
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Members
+    description: Core member management operations
+  - name: MemberPanels
+    description: Member panel qualification management operations
+  - name: MemberAvailability
+    description: Member availability plan management operations
+
+paths:
+# Core Member Management Endpoints
+  /slotiq/v1/members:
+    post:
+      summary: Onboard new member
+      description: Create a new member in the system (FR#MAP-1)
+      operationId: createMember
+      tags: [Members]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMemberRequest'
+      responses:
+        '201':
+          description: Member created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateMemberResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      summary: Get all members with pagination
+      description: Retrieve paginated list of members (FR#MAP-3)
+      operationId: getAllMembers
+      parameters:
+        - name: pageNumber
+          in: query
+          description: Page number (1-based)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 25
+        - name: sortBy
+          in: query
+          description: Sort field
+          required: false
+          schema:
+            type: string
+            enum: [UserName, Firstname, Lastname, EmailAddress, RoleName, PracticeID, CreatedDate]
+            default: CreatedDate
+        - name: sortOrder
+          in: query
+          description: Sort direction
+          required: false
+          schema:
+            type: string
+            enum: [ASC, DESC]
+            default: DESC
+        - name: isActive
+          in: query
+          description: Filter by active status
+          required: false
+          schema:
+            type: boolean
+        - name: roleName
+          in: query
+          description: Filter by role
+          required: false
+          schema:
+            $ref: '#/components/schemas/MemberRoleEnum'
+        - name: practiceID
+          in: query
+          description: Filter by practice ID
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Members retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMembersResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /slotiq/v1/members/{memberid}:
+    get:
+      summary: Get member by ID
+      description: Retrieve specific member details (FR#MAP-4)
+      operationId: getMemberById
+      tags: [Members]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Member details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMemberResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update member details
+      description: Modify existing member details (FR#MAP-2)
+      operationId: updateMember
+      tags: [Members]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberRequest'
+      responses:
+        '200':
+          description: Member updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateMemberResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Deactivate member
+      description: Deactivate member (soft delete) (FR#MAP-5)
+      operationId: deactivateMember
+      tags: [Members]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Member deactivated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeactivateMemberResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /slotiq/v1/members/search:
+    post:
+      summary: Search members with filters
+      description: Search members using multiple filters and free-text queries (FR#MAP-6)
+      operationId: searchMembers
+      tags: [Members]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchMembersRequest'
+      responses:
+        '200':
+          description: Members search completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMembersResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+# Member Panels Management Endpoints
+  /slotiq/v1/members/{memberid}/panels:
+    post:
+      summary: Add panel qualification to member
+      description: Add a new panel qualification to an existing member
+      operationId: addMemberPanel
+      tags: [MemberPanels]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID (Aggregate Root)
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMemberPanelRequest'
+      responses:
+        '201':
+          description: Panel qualification added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddMemberPanelResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    get:
+      summary: Get member's panel qualifications
+      description: Retrieve all panel qualifications for a member
+      operationId: getMemberPanels
+      tags: [MemberPanels]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID (Aggregate Root)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: isActive
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Panel qualifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMemberPanelsResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+ # Update the delete endpoint under /slotiq/v1/members/{memberid}/panels/{panelid}
+  /slotiq/v1/members/{memberid}/panels/{panelid}:
+    put:
+      summary: Update member's panel qualification
+      description: Modify existing panel qualification details
+      operationId: updateMemberPanel
+      tags: [MemberPanels]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID (Aggregate Root)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: panelid
+          in: path
+          description: Panel Qualification ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberPanelRequest'
+      responses:
+        '200':
+          description: Panel qualification updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateMemberPanelResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+   
+    delete:
+      summary: Deactivate member's panel qualification
+      description: Soft delete a panel qualification
+      operationId: deactivateMemberPanel
+      tags: [MemberPanels]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID (Aggregate Root)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: panelid
+          in: path
+          description: Panel Qualification ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeactivateMemberPanelRequest'
+      responses:
+        '200':
+          description: Panel qualification deactivated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeactivateMemberPanelResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+ 
+ # Member Availability Management Endpoints
+  /slotiq/v1/members/{memberid}/availability:
+    post:
+      summary: Add availability plan to member
+      description: Create a new availability plan for an existing member
+      operationId: addMemberAvailability
+      tags: [MemberAvailability]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID (Aggregate Root)
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMemberAvailabilityRequest'
+      responses:
+        '201':
+          description: Availability plan added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddMemberAvailabilityResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    get:
+      summary: Get member's availability plans
+      description: Retrieve all availability plans for a member
+      operationId: getMemberAvailabilityPlans
+      tags: [MemberAvailability]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID (Aggregate Root)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: fromDate
+          in: query
+          description: Filter by start date
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          description: Filter by end date
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          description: Filter by availability status
+          schema:
+            $ref: '#/components/schemas/AvailabilityStatusEnum'
+      responses:
+        '200':
+          description: Availability plans retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMemberAvailabilityResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  /slotiq/v1/members/{memberid}/availability/{availabilityid}:
+    put:
+      summary: Update member's availability plan
+      description: Modify existing availability plan details
+      operationId: updateMemberAvailability
+      tags: [MemberAvailability]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID (Aggregate Root)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: availabilityid
+          in: path
+          description: Availability Plan ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+           schema:
+             $ref: '#/components/schemas/UpdateMemberAvailabilityRequest'
+      responses:
+        '200':
+          description: Availability plan updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateMemberAvailabilityResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Cancel member's availability plan
+      description: Cancel an existing availability plan
+      operationId: cancelMemberAvailability
+      tags: [MemberAvailability]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID (Aggregate Root)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: availabilityid
+          in: path
+          description: Availability Plan ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelMemberAvailabilityRequest'
+      responses:
+        '200':
+          description: Availability plan cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelMemberAvailabilityResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /slotiq/v1/members/{memberid}/availability/{availabilityid}/block:
+   put:
+      summary: Block an available slot
+      description: Block an available interview slot (FR#MAM-4)
+      operationId: blockAvailability
+      tags: [MemberAvailability]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID (Aggregate Root)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: availabilityid
+          in: path
+          description: Availability Plan ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - memberid
+                - availabilityid
+                - modifiedBy
+                - source
+              properties:
+                memberID:
+                  type: string
+                  format: uuid
+                  description: Member ID blocking the slot
+                availabilityID:
+                  type: string
+                  format: uuid
+                  description: Availability Plan ID being blocked
+                modifiedBy:
+                  type: string
+                  format: uuid
+                  description: TA Team Admin ID blocking the slot
+                source:
+                  $ref: '#/components/schemas/SourceEnum'
+      responses:
+        '200':
+          description: Availability slot blocked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockAvailabilityResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Slot is not in Available status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /slotiq/v1/members/{memberid}/availability/{availabilityid}/book:
+    put:
+      summary: Book a blocked slot
+      description: Book a blocked interview slot (FR#MAM-5)
+      operationId: bookAvailability
+      tags: [MemberAvailability]
+      parameters:
+        - name: memberid
+          in: path
+          description: Member ID (Aggregate Root)
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: availabilityid
+          in: path
+          description: Availability Plan ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - memberid
+                - availabilityid
+                - modifiedBy
+                - source
+              properties:
+                memberID:
+                  type: string
+                  format: uuid
+                  description: Member ID booking the slot
+                availabilityID:
+                  type: string
+                  format: uuid
+                  description: Availability Plan ID being booked  
+                modifiedBy:
+                  type: string
+                  format: uuid
+                  description: TA Team Admin ID booking the slot
+                source:
+                  $ref: '#/components/schemas/SourceEnum'
+      responses:
+        '200':
+          description: Availability slot booked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookAvailabilityResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Slot is not in Blocked status or blocked by different TA Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    # Common Enums
+
+    SourceEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4, 5]
+      x-enumNames: [Web, Mobile, API, Thirdparty, Manual]
+      description: Origin of creation/modification
+
+    AvailabilityStatusEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4, 5]
+      x-enumNames: [Available, Blocked, Booked, Cancelled, Replanned]
+      description: Status of member availability slot
+    
+    RecruitmentPositionEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4]
+      x-enumNames: [SSEFullStack, Backend, ML, TL]
+      description: Recruitment Position Enum
+      
+    ApplicableLevelEnum:
+      type: integer 
+      format: int32
+      enum: [1, 2, 3]
+      x-enumNames: [L1, L2, L3]
+      description: Applicable Level Enum
+
+    MemberRoleEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4]
+      x-enumNames: [MasterAdmin, PracticeAdmin, TechTeamMember, TATeamAdmin]
+      description: Role identifier enum
+    
+    # Core Member DTOs and Requests/Responses
+    MemberDto:
+      type: object
+      properties:
+        memberID:
+          type: string
+          format: uuid
+          description: Member unique identifier
+          example: '12345678-1234-1234-1234-123456789012'
+        userName:
+          type: string
+          description: Username
+          example: 'john.doe'
+        firstname:
+          type: string
+          description: First name
+          example: 'John'
+        lastname:
+          type: string
+          description: Last name
+          example: 'Doe'
+        emailID:
+          type: string
+          format: email
+          description: Email address
+          example: 'john.doe@aspiresys.com'
+        phoneNumber:
+          type: string
+          description: Phone number
+          example: '1234567890'
+        roleName:
+          $ref: '#/components/schemas/MemberRoleEnum'
+          description: Role identifier (integer enum)
+          example: "Practice Admin"
+        practiceID:
+          type: string
+          format: uuid
+          description: Practice unique identifier
+          example: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        isActive:
+          type: boolean
+          description: Active status
+          example: true
+        createdDate:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: '2025-01-01T10:00:00Z'
+        modifiedDate:
+          type: string
+          format: date-time
+          description: Last modification timestamp
+          example: '2025-01-15T14:30:00Z'
+        modUser:
+          type: string
+          description: Last modifier
+          example: 'admin123'
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+          description: Source application (integer enum)
+          example: 1
+   
+    CreateMemberRequest:
+      type: object
+      required:
+        - userName
+        - firstname
+        - lastname
+        - password
+        - roleName
+        - emailAddress
+        - practiceID
+        - isActive
+        - updatedBy
+        - source
+      properties:
+        userName:
+          type: string
+          minLength: 5
+          maxLength: 100
+          description: Active Directory format username
+          example: 'john.doe'
+        firstname:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: First name of member
+          example: 'John'
+        lastname:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Last name of member
+          example: 'Doe'
+        password:
+          type: string
+          minLength: 8
+          description: Password for member profile with complexity rules
+          example: 'P@ssw0rd123'
+        roleName:
+          $ref: '#/components/schemas/MemberRoleEnum'
+          description: Role identifier
+          example: "Practice Admin"
+        emailAddress:
+          type: string
+          format: email
+          pattern: '^[a-zA-Z0-9._%+-]+@aspiresys\\.com$'
+          description: Email address in aspiresys.com domain
+          example: 'john.doe@aspiresys.com'
+        phoneNumber:
+          type: string
+          pattern: '^[0-9]{10}$'
+          description: Optional phone number
+          example: '1234567890'
+        practiceID:
+          type: string
+          format: uuid
+          description: Practice unique identifier
+          example: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        isActive:
+          type: boolean
+          description: Active status
+          example: true
+        updatedBy:
+          type: string
+          description: Current user ID
+          example: 'admin123'
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+          description: Application source (integer enum)
+          example: 1
+
+    UpdateMemberRequest:
+      type: object
+      required:
+        - updatedBy
+        - source
+      properties:
+        firstname:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: First name of member
+          example: 'John'
+        lastname:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Last name of member
+          example: 'Doe'
+        emailAddress:
+          type: string
+          format: email
+          pattern: '^[a-zA-Z0-9._%+-]+@aspiresys\\.com$'
+          description: Email address in aspiresys.com domain
+          example: 'john.doe@aspiresys.com'
+        phoneNumber:
+          type: string
+          pattern: '^[0-9]{10}$'
+          description: Optional phone number
+          example: '1234567890'
+        roleName:
+          $ref: '#/components/schemas/MemberRoleEnum'
+          description: Role identifier (integer enum)
+          example: "Practice Admin"
+        practiceID:
+          type: string
+          format: uuid
+          description: Practice unique identifier
+          example: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        updatedBy:
+          type: string
+          description: Current user ID
+          example: 'admin123'
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+          description: Application source (integer enum)
+          example: 1
+
+    DeactivateMecmberRequest:
+      type: object
+      required:
+        - updatedBy
+        - source
+      properties:
+        reason:
+          type: string
+          maxLength: 250
+          description: Deactivation reason
+          example: 'Left organization'
+        updatedBy:
+          type: string
+          description: Current user ID
+          example: 'admin123'
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+          description: Application source (integer enum)
+          example: 3
+
+    SearchMembersRequest:
+      type: object
+      required:
+        - updatedBy
+        - source
+      properties:
+        query:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Free text search query
+          example: 'john doe'
+        roleName:
+          $ref: '#/components/schemas/MemberRoleEnum'
+          description: Filter by role
+          example: "Practice Admin"
+        practiceID:
+          type: string
+          format: uuid
+          description: Filter by practice ID
+          example: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        isActive:
+          type: boolean
+          description: Filter by active status
+          example: true
+        pageNumber:
+          type: integer
+          minimum: 1
+          default: 1
+          description: Page number
+          example: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 200
+          default: 25
+          description: Items per page
+          example: 25
+        sortBy:
+          type: string
+          enum: [UserName, Firstname, Lastname, EmailAddress, RoleName, PracticeID, CreatedDate]
+          default: CreatedDate
+          description: Sort field
+          example: 'CreatedDate'
+        sortOrder:
+          type: string
+          enum: [ASC, DESC]
+          default: DESC
+          description: Sort direction
+          example: 'DESC'
+
+    CreateMemberResponse:
+      type: object
+      properties:
+        memberID:
+          type: string
+          format: uuid
+          description: Created member ID
+          example: '12345678-1234-1234-1234-123456789012'
+        successCode:
+          type: string
+          example: 'MEMBER_ONBOARD_SUCCESS'
+        successMessage:
+          type: string
+          example: 'User onboarded successfully.'
+
+    UpdateMemberResponse:
+      type: object
+      properties:
+        memberID:
+          type: string
+          format: uuid
+          description: Updated member ID
+          example: '12345678-1234-1234-1234-123456789012'
+        successCode:
+          type: string
+          example: 'MEMBER_UPDATE_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Member details updated successfully.'
+
+    DeactivateMemberResponse:
+      type: object
+      properties:
+        memberID:
+          type: string
+          format: uuid
+          description: Deactivated member ID
+          example: '12345678-1234-1234-1234-123456789012'
+        successCode:
+          type: string
+          example: 'MEMBER_DEACTIVATE_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Member deactivated successfully.'
+
+    GetMemberResponse:
+      type: object
+      properties:
+        successCode:
+          type: string
+          example: 'MEMBER_GET_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Member details retrieved successfully.'
+        member:
+          $ref: '#/components/schemas/MemberDto'
+
+    GetMembersResponse:
+      type: object
+      properties:
+        successCode:
+          type: string
+          example: 'MEMBER_LIST_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Members retrieved successfully.'
+        totalCount:
+          type: integer
+          description: Total number of members
+          example: 150
+        pageNumber:
+          type: integer
+          description: Current page number
+          example: 1
+        pageSize:
+          type: integer
+          description: Items per page
+          example: 25
+        hasNext:
+          type: boolean
+          description: Has next page
+          example: true
+        hasPrevious:
+          type: boolean
+          description: Has previous page
+          example: false
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberDto'
+
+    SearchMembersResponse:
+      type: object
+      properties:
+        successCode:
+          type: string
+          example: 'MEMBER_SEARCH_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Members retrieved successfully.'
+        totalCount:
+          type: integer
+          description: Total number of matching members
+          example: 12
+        pageNumber:
+          type: integer
+          description: Current page number
+          example: 1
+        pageSize:
+          type: integer
+          description: Items per page
+          example: 25
+        hasNext:
+          type: boolean
+          description: Has next page
+          example: false
+        hasPrevious:
+          type: boolean
+          description: Has previous page
+          example: false
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberDto'
+    
+    # Member Panel DTOs and Requests/Responses
+    MemberPanelDto:
+      type: object
+      properties:
+        panelID:
+          type: string
+          format: uuid
+        memberID:
+          type: string
+          format: uuid
+        recruitmentPosition:
+          $ref: '#/components/schemas/RecruitmentPositionEnum'
+        applicableLevel:
+          $ref: '#/components/schemas/ApplicableLevelEnum'
+        isActive:
+          type: boolean
+        createdDate:
+          type: string
+          format: date-time
+        modifiedDate:
+          type: string
+          format: date-time
+        modUser:
+          type: string
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+
+    AddMemberPanelRequest:
+      type: object
+      required:
+        - recruitmentPosition
+        - applicableLevel
+        - createdBy
+        - source
+      properties:
+        recruitmentPosition:
+          $ref: '#/components/schemas/RecruitmentPositionEnum'
+        applicableLevel:
+          $ref: '#/components/schemas/ApplicableLevelEnum'
+        createdBy:
+          type: string
+          description: User ID of creator
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+
+    UpdateMemberPanelRequest:
+      type: object
+      required:
+        - modifiedBy
+        - source
+      properties:
+        recruitmentPosition:
+          $ref: '#/components/schemas/RecruitmentPositionEnum'
+        applicableLevel:
+          $ref: '#/components/schemas/ApplicableLevelEnum'
+        isActive:
+          type: boolean
+        modifiedBy:
+          type: string
+          description: User ID of modifier
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+
+    DeactivateMemberPanelRequest:
+      type: object
+      required:
+        - reason
+        - modifiedBy
+        - source
+      properties:
+        reason:
+          type: string
+          description: Reason for deactivating the panel qualification
+          minLength: 5
+          maxLength: 500
+          example: "Panel member no longer available for this position"
+        modifiedBy:
+          type: string
+          description: User ID of the person deactivating the panel
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+          description: Source system making the deactivation request
+
+    AddMemberPanelResponse:
+      type: object
+      properties:
+        panelID:
+          type: string
+          format: uuid
+        successCode:
+          type: string
+          example: 'PANEL_ADD_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Panel qualification added successfully'
+
+    UpdateMemberPanelResponse:
+      type: object
+      properties:
+        panelID:
+          type: string
+          format: uuid
+        successCode:
+          type: string
+          example: 'PANEL_UPDATE_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Panel qualification updated successfully'
+
+    DeactivateMemberPanelResponse:
+      type: object
+      properties:
+        panelID:
+          type: string
+          format: uuid
+        successCode:
+          type: string
+          example: 'PANEL_DEACTIVATE_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Panel qualification deactivated successfully'
+
+    GetMemberPanelsResponse:
+      type: object
+      properties:
+        successCode:
+          type: string
+          example: 'PANEL_LIST_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Panel qualifications retrieved successfully'
+        panels:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberPanelDto'
+
+    #Member Availability DTOs and Requests/Responses
+    MemberAvailabilityDto:
+      type: object
+      properties:
+        availabilityID:
+          type: string
+          format: uuid
+        memberID:
+          type: string
+          format: uuid
+        availableDate:
+          type: string
+          format: date
+        availableTimeFrom:
+          type: string
+          format: time
+        availableTimeTo:
+          type: string
+          format: time
+        status:
+          $ref: '#/components/schemas/AvailabilityStatusEnum'
+        isActive:
+          type: boolean
+        createdDate:
+          type: string
+          format: date-time
+        modifiedDate:
+          type: string
+          format: date-time
+        modUser:
+          type: string
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+    
+    AddMemberAvailabilityRequest:
+      type: object
+      required:
+        - availableDate
+        - availableTimeFrom
+        - availableTimeTo
+        - availableStatus
+        - createdBy
+        - source
+      properties:
+        availableDate:
+          type: string
+          format: date
+          description: Date of availability
+        availableTimeFrom:
+          type: string
+          format: time
+          description: Start time of availability slot
+        availableTimeTo:
+          type: string
+          format: time
+          description: End time of availability slot
+        availableStatus:
+          $ref: '#/components/schemas/AvailabilityStatusEnum'
+          description: Status of availability slot
+        createdBy:
+          type: string
+          format: uuid
+          description: User ID of creator
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+    UpdateMemberAvailabilityRequest:
+      type: object
+      required:
+        - modifiedBy
+        - source
+      properties:
+        availableDate:
+          type: string
+          format: date
+        availableTimeFrom:
+          type: string
+          format: time
+        availableTimeTo:
+          type: string
+          format: time
+        status:
+          $ref: '#/components/schemas/AvailabilityStatusEnum'
+        isActive:
+          type: boolean
+        modifiedBy:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+          
+    CancelMemberAvailabilityRequest:
+      type: object
+      required:
+        - memberID
+        - availabilityID
+        - reason
+        - modifiedBy
+        - source
+      properties:
+        memberID:
+          type: string
+          format: uuid
+          description: Member ID cancelling the availability
+        availabilityID:
+          type: string
+          format: uuid
+          description: Availability Plan ID being cancelled  
+        reason:
+          type: string
+          description: Reason for cancelling the availability
+          minLength: 5
+          maxLength: 500
+        modifiedBy:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+
+    BlockAvailabilityRequest:
+      type: object
+      required:
+        - modifiedBy
+        - source
+      properties:
+        modifiedBy:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+
+    BookAvailabilityRequest:
+      type: object
+      required:
+        - modifiedBy
+        - source
+      properties:
+        modifiedBy:
+          type: string
+          format: uuid
+        source: 
+          $ref: '#/components/schemas/SourceEnum'
+    
+    AddMemberAvailabilityResponse:
+      type: object
+      properties:
+        availabilityID:
+          type: string
+          format: uuid
+        successCode:
+          type: string
+          example: 'AVAILABILITY_ADD_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Availability plan added successfully'
+    UpdateMemberAvailabilityResponse:
+      type: object
+      properties:
+        availabilityID:
+          type: string
+          format: uuid
+        successCode:
+          type: string
+          example: 'AVAILABILITY_UPDATE_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Availability plan updated successfully'      
+    CancelMemberAvailabilityResponse:
+      type: object
+      properties:
+        availabilityID:
+          type: string
+          format: uuid
+        successCode:
+          type: string
+          example: 'AVAILABILITY_CANCEL_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Availability plan cancelled successfully'
+
+    BlockAvailabilityResponse:
+      type: object
+      properties:
+        availabilityID:
+          type: string
+          format: uuid
+        successCode:
+          type: string
+          example: 'AVAILABILITY_BLOCK_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Availability slot blocked successfully'
+
+    BookAvailabilityResponse:
+      type: object
+      properties:
+        availabilityID:
+          type: string
+          format: uuid
+        successCode:
+          type: string
+          example: 'AVAILABILITY_BOOK_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Availability slot booked successfully'
+
+    GetMemberAvailabilityResponse:
+      type: object    
+      properties:
+        successCode:
+          type: string
+          example: 'AVAILABILITY_LIST_SUCCESS'
+        successMessage:
+          type: string
+          example: 'Availability plans retrieved successfully'
+        availabilityPlans:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberAvailabilityDto'  
+     
+    # Common Error Response
+    ErrorResponse:
+      type: object
+      properties:
+        errorCode:
+          type: string
+        errorMessage:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+

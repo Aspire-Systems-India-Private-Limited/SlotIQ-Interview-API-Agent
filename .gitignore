@@ -1,0 +1,20 @@
+# .gitignore for SlotIQ.Interview Solution
+# Ignore build output
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+# Ignore VS Code settings
+.vscode/
+# Ignore logs
+*.log
+# Ignore temporary files
+*.tmp
+*.temp
+# Ignore test results
+TestResults/
+# Ignore scaffolding artifacts
+Scaffold Instruction/SlotIQ.Interview/*/bin/
+Scaffold Instruction/SlotIQ.Interview/*/obj/

@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: SlotIQ Authentication Entities
+  description: Member-related entities for authentication and RBAC in SlotIQ Interview system.
+  version: 1.0.0
+
+components:
+  schemas:
+    MemberLogin: 
+      type: object
+      description: Member login
+      properties:
+        userName:
+          type: string
+        password:
+          type: string
+          format: password
+        emailID:
+          type: string
+      required:
+        - userName or emailID
+        - password
+       
+    
+/

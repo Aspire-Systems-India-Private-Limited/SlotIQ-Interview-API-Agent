@@ -1,0 +1,169 @@
+openapi: 3.0.3
+info:
+  title: SlotIQ Authentication Contracts
+  description: Contracts for authentication and role-based authorization in SlotIQ Interview system.
+  version: 1.0.0
+
+components:
+  schemas:
+    SourceEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4, 5]
+      x-enumNames: [Web, Mobile, API, Thirdparty, Manual]
+      description: Origin of creation/modification
+
+    MemberRoleEnum:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4]
+      x-enumNames: [MasterAdmin, PracticeAdmin, TechTeamMember, TATeamAdmin]
+      description: Role identifier enum
+
+    MemberLoginRequest:
+      type: object
+      description: Login request using username/email and password
+      properties:
+        userNameOrEmail:
+          type: string
+          description: Username or email for login
+        password:
+          type: string
+          format: password
+          description: User password
+      required:
+        - userNameOrEmail
+        - password
+    
+    MemberLoginResponse:
+      type: object
+      description: Response containing JWT token and member info
+      properties:
+        token:
+          type: string
+          description: JWT access token
+        member:
+          $ref: '#/components/schemas/MemberDto'
+      required:
+        - token
+        - member
+    
+    MemberDto:
+      type: object
+      properties:
+        memberID:
+          type: string
+          format: uuid
+          description: Member unique identifier
+          example: '12345678-1234-1234-1234-123456789012'
+        userName:
+          type: string
+          description: Username
+          example: 'john.doe'
+        firstname:
+          type: string
+          description: First name
+          example: 'John'
+        lastname:
+          type: string
+          description: Last name
+          example: 'Doe'
+        emailID:
+          type: string
+          format: email
+          description: Email address
+          example: 'john.doe@aspiresys.com'
+        phoneNumber:
+          type: string
+          description: Phone number
+          example: '1234567890'
+        roleName:
+          $ref: '#/components/schemas/MemberRoleEnum'
+          description: Role identifier (integer enum)
+          example: "Practice Admin"
+        practiceID:
+          type: string
+          format: uuid
+          description: Practice unique identifier
+          example: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        isActive:
+          type: boolean
+          description: Active status
+          example: true
+        createdDate:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: '2025-01-01T10:00:00Z'
+        modifiedDate:
+          type: string
+          format: date-time
+          description: Last modification timestamp
+          example: '2025-01-15T14:30:00Z'
+        modUser:
+          type: string
+          description: Last modifier
+          example: 'admin123'
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+          description: Source application (integer enum)
+          example: 1
+
+paths:
+  /api/auth/login:
+    post:
+      summary: Authenticate user and return JWT token
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberLoginRequest'
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberLoginResponse'
+        '401':
+          description: Invalid credentials (wrong username/email or password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid username/email or password.
+        '422':
+          description: Unprocessable Entity (empty password field or password not provided)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Password field is required and cannot be empty.
+        '404':
+          description: User not found (username/email does not exist)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found.
+        '400':
+          description: Bad request (missing or invalid input)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid request payload.

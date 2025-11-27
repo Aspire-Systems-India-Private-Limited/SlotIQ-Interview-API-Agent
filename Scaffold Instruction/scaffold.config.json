@@ -1,0 +1,28 @@
+{
+  "templateVersion": "3.1",
+  "variables": {
+    "CompanyName": "Aspire",
+    "ProjectName": "Interview",
+    "SolutionName": "SlotIQ.Interview",
+    "ProjectPrefix": "SlotIQ.Interview",
+    "DotNetVersion": "net9.0",
+    "CSharpVersion": "12.0",
+    "DapperVersion": "2.1.35",
+    "ValidatorVersion": "11.9.2",
+    "MapperVersion": "12.0.1",
+    "TestingVersion": "2.9.2",
+    "DatabaseProvider": "SqlServer",
+    "AuthMechanism": "ActiveDirectory"
+  },
+  "customization": {
+    "enableSwagger": true,
+    "enableHealthChecks": true,
+    "enableSerilog": true,
+    "useDockerSupport": false
+  },
+  "database": {
+    "server": "(localdb)\\mssqllocaldb",
+    "name": "SlotIQInterviewDb",
+    "useIntegratedSecurity": true
+  }
+}

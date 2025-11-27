@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SlotIQ.Interview.Logic\SlotIQ.Interview.Logic.csproj" />
+    <ProjectReference Include="..\SlotIQ.Interview.Data\SlotIQ.Interview.Data.csproj" />
+    <ProjectReference Include="..\SlotIQ.Interview.Common\SlotIQ.Interview.Common.csproj" />
+  </ItemGroup>
+
+</Project>
