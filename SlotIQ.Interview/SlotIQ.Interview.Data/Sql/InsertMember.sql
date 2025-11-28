@@ -1,4 +1,4 @@
-INSERT INTO Members (
+INSERT INTO MEM.Member (
     MemberID,
     UserName,
     FirstName,
