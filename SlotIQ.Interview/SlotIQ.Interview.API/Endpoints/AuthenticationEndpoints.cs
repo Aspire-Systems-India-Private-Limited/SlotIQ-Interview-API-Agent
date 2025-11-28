@@ -14,7 +14,6 @@ public static class AuthenticationEndpoints
 
         authGroup.MapPost("/login", LoginAsync)
             .WithName("Login")
-            .WithOpenApi()
             .Produces<MemberLoginResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)

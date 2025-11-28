@@ -17,7 +17,7 @@ public class MemberRepository : IMemberRepository
             EmailID = "john.doe@aspiresys.com",
             PhoneNumber = "1234567890",
             // Password: "P@ssw0rd123" hashed with BCrypt
-            PasswordHash = "$2a$11$RZvQYHqYZGBXzJ0KCjxGUOqZ1VGE8/hUWZHqT9lVXmEKx0Hk3zPXi",
+            PasswordHash = "$2a$11$gnugM0ap66XvT22avkSjVeYPKadGm..n7eCRwTPJw24vox0E1fHH.",
             RoleName = MemberRoleEnum.MasterAdmin,
             PracticeID = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
             IsActive = true,
@@ -37,7 +37,7 @@ public class MemberRepository : IMemberRepository
             EmailID = "jane.smith@aspiresys.com",
             PhoneNumber = "9876543210",
             // Password: "Test@123" hashed with BCrypt
-            PasswordHash = "$2a$11$7ZhVqDdYQYvT9L8lPqHzHe5VyN3GjKN5M9xGkLpT6LQYbE3mKzJzG",
+            PasswordHash = "$2a$11$OvrWN73xDjXvpG.AUuAMcOoTjgxJF2/LisG/tQrNu16djbo6.nt/S",
             RoleName = MemberRoleEnum.PracticeAdmin,
             PracticeID = Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff"),
             IsActive = true,
