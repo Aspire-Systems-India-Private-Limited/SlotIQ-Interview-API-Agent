@@ -42,6 +42,10 @@ public static class AuthenticationEndpoints
             {
                 return Results.UnprocessableEntity(new { error = errorMessage });
             }
+            else if (errorMessage == "Username or email is required.")
+            {
+                return Results.BadRequest(new { error = errorMessage });
+            }
             else if (errorMessage == "User not found.")
             {
                 return Results.NotFound(new { error = errorMessage });

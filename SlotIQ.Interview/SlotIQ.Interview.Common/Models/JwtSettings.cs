@@ -1,4 +1,4 @@
-namespace SlotIQ.Interview.API.Models;
+namespace SlotIQ.Interview.Common.Models;
 
 public class JwtSettings
 {
