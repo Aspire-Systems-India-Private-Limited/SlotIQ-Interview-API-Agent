@@ -10,6 +10,15 @@ See: `Requirement/Functional/V1/1#MemberManagement/FR#MAP-1 – Onboard Members 
 - OpenAPI Contract: `Requirement/Technical/MemberAggregate/MemberAggregateContracts.openapi.yml`
 - Entity Definition: `Requirement/Technical/MemberAggregate/MemberAggregateEntities.openapi.yaml`
 
+### Coding Standards & References
+- Follow all architecture and coding standards in `.github/copilot-instructions.md`
+- See layer-specific instructions in `.github/Instructions/`
+    - [API Layer](../../.github/Instructions/api.instructions.md)
+    - [Logic Layer](../../.github/Instructions/logic.instructions.md)
+    - [Data Layer](../../.github/Instructions/data.instructions.md)
+    - [Unit Testing](../../.github/Instructions/unittest.instructions.md)
+    - [Database](../../.github/Instructions/database.instructions.md)
+
 ### Implementation Scope
 - [ ] API Endpoints (Minimal API)
 - [ ] Logic Layer (CQRS handlers, DTOs)
