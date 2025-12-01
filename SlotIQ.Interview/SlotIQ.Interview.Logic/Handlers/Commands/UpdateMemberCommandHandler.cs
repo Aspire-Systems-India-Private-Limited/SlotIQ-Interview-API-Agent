@@ -63,7 +63,7 @@ public class UpdateMemberCommandHandler : ICommandHandler<UpdateMemberCommand, R
 
             // Check for duplicate email if email is being updated
             if (!string.IsNullOrEmpty(command.Dto.EmailID) && 
-                !existingMember.EmailID.Equals(command.Dto.EmailID, StringComparison.OrdinalIgnoreCase))
+                !string.Equals(existingMember.EmailID, command.Dto.EmailID, StringComparison.OrdinalIgnoreCase))
             {
                 if (await _memberRepository.EmailExistsAsync(command.Dto.EmailID))
                 {
@@ -74,7 +74,7 @@ public class UpdateMemberCommandHandler : ICommandHandler<UpdateMemberCommand, R
 
             // Check for duplicate phone number if phone number is being updated
             if (!string.IsNullOrEmpty(command.Dto.PhoneNumber) && 
-                !existingMember.PhoneNumber.Equals(command.Dto.PhoneNumber, StringComparison.OrdinalIgnoreCase))
+                !string.Equals(existingMember.PhoneNumber, command.Dto.PhoneNumber, StringComparison.OrdinalIgnoreCase))
             {
                 if (await _memberRepository.PhoneNumberExistsAsync(command.Dto.PhoneNumber))
                 {

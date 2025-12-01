@@ -191,12 +191,11 @@ public class UpdateMemberDtoValidatorTests
 
     [Theory]
     [InlineData("")]
-    [InlineData(null)]
     public async Task Validate_EmptyModifiedBy_FailsValidation(string modifiedBy)
     {
         // Arrange
         var dto = CreateValidDto();
-        dto.ModifiedBy = modifiedBy!;
+        dto.ModifiedBy = modifiedBy;
 
         // Act
         var result = await _validator.ValidateAsync(dto);

@@ -105,8 +105,8 @@ public static class MemberEndpoints
 
         if (!result.IsSuccess)
         {
-            // Check if it's a not found error
-            if (result.Error?.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
+            // Check if it's a not found error using the error constant
+            if (result.Error == ErrorMessages.MemberNotFound)
             {
                 return TypedResults.NotFound(new ApiResponse<object>
                 {

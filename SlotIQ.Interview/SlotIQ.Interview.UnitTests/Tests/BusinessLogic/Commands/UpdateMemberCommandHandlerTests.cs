@@ -257,12 +257,13 @@ public class UpdateMemberCommandHandlerTests
     [Fact]
     public async Task Handle_OnlyProvidedFieldsAreUpdated()
     {
-        // Arrange
+        // Arrange - Testing partial updates where only FirstName is provided
+        // Other fields (LastName, EmailID, PhoneNumber, RoleID, PracticeID) are intentionally null
+        // to verify that only explicitly provided fields are updated
         var memberId = Guid.NewGuid();
         var dto = new UpdateMemberDto
         {
             FirstName = "UpdatedFirstName",
-            // LastName, EmailID, PhoneNumber, RoleID, PracticeID are null
             Source = SourceEnum.API,
             ModifiedBy = "system"
         };
