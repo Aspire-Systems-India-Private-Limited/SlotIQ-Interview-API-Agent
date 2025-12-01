@@ -32,6 +32,19 @@ public static class MemberEndpoints
             .Produces<ApiResponse<object>>(403)
             .Produces<ApiResponse<object>>(409)
             .Produces<ApiResponse<object>>(500);
+
+        group.MapPut("/{memberid:guid}", UpdateMember)
+            .WithName("UpdateMember")
+            .WithSummary("Update member details")
+            .WithDescription("Modify existing member details (FR#MAP-2)")
+            .Accepts<UpdateMemberRequest>("application/json")
+            .Produces<ApiResponse<UpdateMemberResponse>>(200)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(403)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(409)
+            .Produces<ApiResponse<object>>(500);
     }
 
     private static async Task<Results<Created<ApiResponse<CreateMemberResponse>>, BadRequest<ApiResponse<object>>>> CreateMember(
@@ -68,6 +81,57 @@ public static class MemberEndpoints
         };
 
         return TypedResults.Created($"/slotiq/v1/members/{result.Value!.MemberID}", new ApiResponse<CreateMemberResponse>
+        {
+            Success = true,
+            Data = response
+        });
+    }
+
+    private static async Task<Results<Ok<ApiResponse<UpdateMemberResponse>>, BadRequest<ApiResponse<object>>, NotFound<ApiResponse<object>>>> UpdateMember(
+        Guid memberid,
+        UpdateMemberRequest request,
+        UpdateMemberCommandHandler handler,
+        IMapper mapper,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        // TODO: Get UpdatedBy from authenticated user context
+        var currentUser = "system"; // Placeholder - should come from authentication
+
+        var updateMemberDto = mapper.Map<UpdateMemberDto>(request);
+        updateMemberDto.ModifiedBy = currentUser;
+
+        var result = await handler.Handle(new UpdateMemberCommand(memberid, updateMemberDto), ct);
+
+        if (!result.IsSuccess)
+        {
+            // Check if it's a not found error using the error constant
+            if (result.Error == ErrorMessages.MemberNotFound)
+            {
+                return TypedResults.NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    ErrorMessage = result.Error,
+                    ErrorCode = ErrorCodes.ResourceNotFoundError
+                });
+            }
+
+            return TypedResults.BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                ErrorMessage = result.Error,
+                ErrorCode = ErrorCodes.ValidationError
+            });
+        }
+
+        var response = new UpdateMemberResponse
+        {
+            MemberID = result.Value!.MemberID,
+            SuccessCode = ErrorCodes.MemberUpdateSuccess,
+            SuccessMessage = ErrorMessages.MemberUpdateSuccess
+        };
+
+        return TypedResults.Ok(new ApiResponse<UpdateMemberResponse>
         {
             Success = true,
             Data = response

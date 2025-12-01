@@ -7,6 +7,7 @@ public static class ErrorMessages
 {
     // Success Messages
     public const string MemberOnboardSuccess = "User onboarded successfully.";
+    public const string MemberUpdateSuccess = "Member details updated successfully.";
     
     // Validation Error Messages
     public const string UserNameRequired = "UserName is required.";
@@ -41,6 +42,7 @@ public static class ErrorMessages
     
     // System Errors
     public const string UserOnboardFailure = "User onboard failed.";
+    public const string MemberUpdateFailure = "Failed to update member. Please try again later.";
     public const string SystemError = "Failed to onboard user. Please try again later.";
     public const string ServiceUnavailable = "Service is currently unavailable. Please try again later.";
     public const string UnauthorizedError = "You are not authorized to perform this operation.";
@@ -53,6 +55,7 @@ public static class ErrorMessages
 public static class ErrorCodes
 {
     public const string MemberOnboardSuccess = "MEMBER_ONBOARD_SUCCESS";
+    public const string MemberUpdateSuccess = "MEMBER_UPDATE_SUCCESS";
     public const string UserOnboardFailure = "USER_ONBOARD_FAILURE";
     public const string ValidationError = "VALIDATION_ERROR";
     public const string DuplicateEntryError = "DUPLICATE_ENTRY_ERROR";

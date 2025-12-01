@@ -31,6 +31,10 @@ public static class ServiceConfiguration
         services.AddScoped<ICommandHandler<CreateMemberCommand, Result<MemberDto>>>(sp => 
             sp.GetRequiredService<CreateMemberCommandHandler>());
 
+        services.AddScoped<UpdateMemberCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateMemberCommand, Result<MemberDto>>>(sp => 
+            sp.GetRequiredService<UpdateMemberCommandHandler>());
+
         // Validators
         services.AddValidatorsFromAssemblyContaining<CreateMemberDtoValidator>();
 

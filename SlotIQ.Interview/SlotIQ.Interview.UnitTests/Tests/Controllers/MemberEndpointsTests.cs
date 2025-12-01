@@ -56,6 +56,76 @@ public class MemberEndpointsTests
     }
 
     [Fact]
+    public void UpdateMemberRequest_ValidProperties_ShouldMapCorrectly()
+    {
+        // Arrange
+        var request = new UpdateMemberRequest
+        {
+            FirstName = "UpdatedTest",
+            LastName = "UpdatedUser",
+            EmailAddress = "updated@aspiresys.com",
+            PhoneNumber = "9876543210",
+            RoleName = MemberRoleEnum.TechTeamMember,
+            PracticeID = Guid.NewGuid(),
+            Source = SourceEnum.API,
+            UpdatedBy = "system"
+        };
+
+        // Assert
+        request.FirstName.Should().Be("UpdatedTest");
+        request.LastName.Should().Be("UpdatedUser");
+        request.EmailAddress.Should().Be("updated@aspiresys.com");
+        request.PhoneNumber.Should().Be("9876543210");
+        request.RoleName.Should().Be(MemberRoleEnum.TechTeamMember);
+        request.Source.Should().Be(SourceEnum.API);
+        request.UpdatedBy.Should().Be("system");
+    }
+
+    [Fact]
+    public void UpdateMemberRequest_OptionalFields_CanBeNull()
+    {
+        // Arrange
+        var request = new UpdateMemberRequest
+        {
+            FirstName = null,
+            LastName = null,
+            EmailAddress = null,
+            PhoneNumber = null,
+            RoleName = null,
+            PracticeID = null,
+            Source = SourceEnum.API,
+            UpdatedBy = "system"
+        };
+
+        // Assert
+        request.FirstName.Should().BeNull();
+        request.LastName.Should().BeNull();
+        request.EmailAddress.Should().BeNull();
+        request.PhoneNumber.Should().BeNull();
+        request.RoleName.Should().BeNull();
+        request.PracticeID.Should().BeNull();
+        request.UpdatedBy.Should().Be("system");
+    }
+
+    [Fact]
+    public void UpdateMemberResponse_ValidProperties_ShouldSetCorrectly()
+    {
+        // Arrange
+        var memberId = Guid.NewGuid();
+        var response = new UpdateMemberResponse
+        {
+            MemberID = memberId,
+            SuccessCode = "MEMBER_UPDATE_SUCCESS",
+            SuccessMessage = "Member details updated successfully."
+        };
+
+        // Assert
+        response.MemberID.Should().Be(memberId);
+        response.SuccessCode.Should().Be("MEMBER_UPDATE_SUCCESS");
+        response.SuccessMessage.Should().Be("Member details updated successfully.");
+    }
+
+    [Fact]
     public void ApiResponse_Success_ShouldHaveCorrectStructure()
     {
         // Arrange
