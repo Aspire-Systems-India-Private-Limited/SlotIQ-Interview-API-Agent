@@ -2,6 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace SlotIQ.Interview.Common.Enums;
 
+/// <summary>
+/// Source system making the change for audit tracking
+/// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum SourceEnum
 {
