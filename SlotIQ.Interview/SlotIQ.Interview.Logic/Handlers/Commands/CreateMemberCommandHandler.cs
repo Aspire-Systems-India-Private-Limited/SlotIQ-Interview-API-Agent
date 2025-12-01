@@ -53,10 +53,16 @@ public class CreateMemberCommandHandler : ICommandHandler<CreateMemberCommand, R
                 return Result<MemberDto>.Failure(errors);
             }
 
+
             // Map DTO to Entity
             var member = _mapper.Map<Member>(command.Dto);
             member.MemberID = Guid.NewGuid();
-            member.Password = GeneratePassword();
+            // Use password from request, hash it before saving
+            if (string.IsNullOrWhiteSpace(command.Dto.Password))
+            {
+                return Result<MemberDto>.Failure("Password is required.");
+            }
+            member.Password = BCrypt.Net.BCrypt.HashPassword(command.Dto.Password);
             member.IsActive = true;
             member.CreatedDate = DateTime.UtcNow;
             member.ModifiedDate = DateTime.UtcNow;
@@ -73,6 +79,8 @@ public class CreateMemberCommandHandler : ICommandHandler<CreateMemberCommand, R
 
             // Map entity back to DTO
             var memberDto = _mapper.Map<MemberDto>(result.Value);
+            // Optionally, include the plain password in the DTO for admin notification (do not store in DB)
+            // memberDto.PlainPassword = plainPassword; // Uncomment if MemberDto has this property
 
             _logger.LogInformation("Member created successfully with ID {MemberID}", memberDto.MemberID);
             return Result<MemberDto>.Success(memberDto);
@@ -84,18 +92,5 @@ public class CreateMemberCommandHandler : ICommandHandler<CreateMemberCommand, R
         }
     }
 
-    private static string GeneratePassword()
-    {
-        const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789@#$-_";
-        var random = new byte[12];
-        RandomNumberGenerator.Fill(random);
-        
-        var password = new StringBuilder(12);
-        for (int i = 0; i < 12; i++)
-        {
-            password.Append(validChars[random[i] % validChars.Length]);
-        }
-        
-        return password.ToString();
-    }
+    // Password is now provided by the request, not auto-generated.
 }

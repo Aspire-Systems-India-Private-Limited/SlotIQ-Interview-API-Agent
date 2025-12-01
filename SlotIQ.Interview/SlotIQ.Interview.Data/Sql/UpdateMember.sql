@@ -1,4 +1,4 @@
-UPDATE Members
+UPDATE MEM.Member
 SET 
     UserName = @UserName,
     FirstName = @FirstName,

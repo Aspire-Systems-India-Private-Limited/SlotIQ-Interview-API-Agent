@@ -5,10 +5,8 @@ using SlotIQ.Interview.API.Endpoints;
 using SlotIQ.Interview.Common.Models;
 using SlotIQ.Interview.Data.Repositories;
 using SlotIQ.Interview.Data.Repositories.Contracts;
-using SlotIQ.Interview.Logic.Handlers.Commands;
 using SlotIQ.Interview.Logic.Services;
 using SlotIQ.Interview.API.Configuration;
-using SlotIQ.Interview.API.Endpoints;
 using SlotIQ.Interview.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,8 +41,16 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+
+// Add role-based authorization policy for member management
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("MemberManagementPolicy", policy =>
+        policy.RequireRole("MasterAdmin", "PracticeAdmin"));
+});
+
 // Register repositories
-builder.Services.AddSingleton<IMemberRepository, MemberRepository>();
+builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 
 // Register services
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -76,6 +82,31 @@ builder.Services.AddSwaggerGen(options =>
         Title = "SlotIQ Member Aggregate API",
         Version = "v1",
         Description = "API for managing members, their panel qualifications, and availability in the SlotIQ interview system"
+    });
+
+    // Add JWT Bearer authentication to Swagger
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter 'Bearer' [space] and then your valid token. Example: Bearer eyJhbGci..."
+    });
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
     });
 });
 

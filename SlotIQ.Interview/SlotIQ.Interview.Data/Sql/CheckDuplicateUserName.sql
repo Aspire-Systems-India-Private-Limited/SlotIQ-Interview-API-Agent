@@ -1,4 +1,4 @@
 SELECT COUNT(*) 
-FROM Members 
+FROM MEM.Member 
 WHERE UserName = @UserName 
 AND IsActive = 1;

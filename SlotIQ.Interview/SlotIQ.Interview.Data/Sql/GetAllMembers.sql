@@ -14,6 +14,6 @@ SELECT
     CreatedBy,
     ModifiedBy,
     Source
-FROM Members
+FROM MEM.Member
 WHERE IsActive = 1
 ORDER BY CreatedDate DESC;

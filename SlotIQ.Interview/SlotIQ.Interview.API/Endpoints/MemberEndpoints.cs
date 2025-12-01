@@ -18,7 +18,8 @@ public static class MemberEndpoints
     {
         var group = app.MapGroup("/slotiq/v1/members")
             .WithTags("Members")
-            .WithOpenApi();
+            .WithOpenApi()
+            .RequireAuthorization("MemberManagementPolicy");
 
         group.MapPost("/", CreateMember)
             .WithName("CreateMember")
@@ -43,8 +44,9 @@ public static class MemberEndpoints
         // TODO: Get CreatedBy from authenticated user context
         var currentUser = "system"; // Placeholder - should come from authentication
 
-        var createMemberDto = mapper.Map<CreateMemberDto>(request);
-        createMemberDto.CreatedBy = currentUser;
+    var createMemberDto = mapper.Map<CreateMemberDto>(request);
+    createMemberDto.Password = request.Password;
+    createMemberDto.CreatedBy = currentUser;
 
         var result = await handler.Handle(new CreateMemberCommand(createMemberDto), ct);
 

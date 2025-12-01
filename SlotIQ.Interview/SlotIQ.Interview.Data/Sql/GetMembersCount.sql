@@ -1,3 +1,3 @@
 SELECT COUNT(*) 
-FROM Members 
+FROM MEM.Member 
 WHERE IsActive = 1;

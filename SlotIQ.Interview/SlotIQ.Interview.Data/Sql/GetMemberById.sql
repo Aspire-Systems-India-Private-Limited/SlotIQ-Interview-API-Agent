@@ -14,6 +14,6 @@ SELECT
     CreatedBy,
     ModifiedBy,
     Source
-FROM Members
+FROM MEM.Member
 WHERE MemberID = @MemberID
 AND IsActive = 1;
