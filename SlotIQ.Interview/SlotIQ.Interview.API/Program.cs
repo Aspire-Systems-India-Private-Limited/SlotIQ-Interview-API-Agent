@@ -7,12 +7,14 @@ using SlotIQ.Interview.Data.Repositories;
 using SlotIQ.Interview.Data.Repositories.Contracts;
 using SlotIQ.Interview.Logic.Handlers.Commands;
 using SlotIQ.Interview.Logic.Services;
+using SlotIQ.Interview.API.Configuration;
+using SlotIQ.Interview.API.Endpoints;
+using SlotIQ.Interview.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
 
 // Configure JWT Settings
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
@@ -49,11 +51,7 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // Register command handlers
 builder.Services.AddScoped<MemberLoginCommandHandler>();
-using SlotIQ.Interview.API.Configuration;
-using SlotIQ.Interview.API.Endpoints;
-using SlotIQ.Interview.API.Middleware;
 
-var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddApplicationServices();
@@ -69,7 +67,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add OpenAPI/Swagger
+// Add OpenAPI/Swagger (single registration)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -103,25 +101,8 @@ app.UseAuthorization();
 // Map endpoints
 AuthenticationEndpoints.MapAuthenticationEndpoints(app);
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.RequireAuthorization();
+
 app.UseHttpsRedirection();
 app.UseCors("ApiCorsPolicy");
 

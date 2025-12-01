@@ -33,28 +33,24 @@ public static class AuthenticationEndpoints
             Password = request.Password
         };
 
-        var (success, token, member, errorMessage) = await handler.HandleAsync(command, cancellationToken);
+        var result = await handler.HandleAsync(command, cancellationToken);
 
-        if (!success)
+        if (!result.IsSuccess)
         {
-            // Determine the appropriate status code based on the error message
-            if (errorMessage == "Password field is required and cannot be empty.")
+            var errorMessage = result.Error ?? "Login failed.";
+            if (errorMessage.Contains("Password", StringComparison.OrdinalIgnoreCase))
             {
                 return Results.UnprocessableEntity(new { error = errorMessage });
             }
-            else if (errorMessage == "Username or email is required.")
+            else if (errorMessage.Contains("Username", StringComparison.OrdinalIgnoreCase) || errorMessage.Contains("email", StringComparison.OrdinalIgnoreCase))
             {
                 return Results.BadRequest(new { error = errorMessage });
             }
-            else if (errorMessage == "User not found.")
+            else if (errorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase))
             {
                 return Results.NotFound(new { error = errorMessage });
             }
-            else if (errorMessage == "Invalid username/email or password.")
-            {
-                return Results.Unauthorized();
-            }
-            else if (errorMessage == "User account is not active.")
+            else if (errorMessage.Contains("Invalid", StringComparison.OrdinalIgnoreCase) || errorMessage.Contains("not active", StringComparison.OrdinalIgnoreCase))
             {
                 return Results.Unauthorized();
             }
@@ -64,12 +60,13 @@ public static class AuthenticationEndpoints
             }
         }
 
+        // Map MemberLoginResponseDto to MemberLoginResponse for API response
+        var dto = result.Value!;
         var response = new MemberLoginResponse
         {
-            Token = token!,
-            Member = member!
+            Token = dto.Token,
+            Member = dto.Member
         };
-
         return Results.Ok(response);
     }
 }

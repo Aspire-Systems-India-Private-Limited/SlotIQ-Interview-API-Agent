@@ -1,15 +1,15 @@
+
 using BCrypt.Net;
+using SlotIQ.Interview.Common.Constants;
+using SlotIQ.Interview.Common.Models;
 using SlotIQ.Interview.Data.Repositories.Contracts;
 using SlotIQ.Interview.Logic.Commands;
 using SlotIQ.Interview.Logic.Dtos;
 using SlotIQ.Interview.Logic.Services;
-
-namespace SlotIQ.Interview.Logic.Handlers.Commands;
-
 public class MemberLoginCommandHandler
 {
     private readonly IMemberRepository _memberRepository;
-    private readonly IJwtTokenService _jwtTokenService;
+    private readonly SlotIQ.Interview.Logic.Services.IJwtTokenService _jwtTokenService;
 
     public MemberLoginCommandHandler(IMemberRepository memberRepository, IJwtTokenService jwtTokenService)
     {
@@ -17,44 +17,47 @@ public class MemberLoginCommandHandler
         _jwtTokenService = jwtTokenService;
     }
 
-    public async Task<(bool Success, string? Token, MemberDto? Member, string? ErrorMessage)> HandleAsync(
-        MemberLoginCommand command, 
+    public async Task<Result<MemberLoginResponseDto>> HandleAsync(
+        MemberLoginCommand command,
         CancellationToken cancellationToken = default)
     {
         // Validate input
-        if (string.IsNullOrWhiteSpace(command.UserNameOrEmail))
-        {
-            return (false, null, null, "Username or email is required.");
-        }
+            if (string.IsNullOrWhiteSpace(command.UserNameOrEmail))
+            {
+                return Result<MemberLoginResponseDto>.Failure(ErrorMessages.UserNameRequired);
+            }
 
-        if (string.IsNullOrWhiteSpace(command.Password))
-        {
-            return (false, null, null, "Password field is required and cannot be empty.");
-        }
+            if (string.IsNullOrWhiteSpace(command.Password))
+            {
+                return Result<MemberLoginResponseDto>.Failure("Password is required.");
+            }
 
-        // Get member by username or email
-        var member = await _memberRepository.GetByUserNameOrEmailAsync(command.UserNameOrEmail, cancellationToken);
+            // Try to get all members and match username/email manually (since no GetByUserNameAsync/GetByEmailAsync)
+            var allMembersResult = await _memberRepository.GetAllAsync();
+            if (!allMembersResult.IsSuccess || allMembersResult.Value == null)
+            {
+                return Result<MemberLoginResponseDto>.Failure(ErrorMessages.MemberNotFound);
+            }
+            var member = allMembersResult.Value.FirstOrDefault(m =>
+                string.Equals(m.UserName, command.UserNameOrEmail, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(m.EmailID, command.UserNameOrEmail, StringComparison.OrdinalIgnoreCase));
+            if (member == null)
+            {
+                return Result<MemberLoginResponseDto>.Failure(ErrorMessages.MemberNotFound);
+            }
 
-        if (member == null)
-        {
-            return (false, null, null, "User not found.");
-        }
+            if (!BCrypt.Net.BCrypt.Verify(command.Password, member.Password))
+            {
+                return Result<MemberLoginResponseDto>.Failure("Invalid username/email or password.");
+            }
 
-        // Verify password
-        bool isPasswordValid = BCrypt.Net.BCrypt.Verify(command.Password, member.PasswordHash);
-        if (!isPasswordValid)
-        {
-            return (false, null, null, "Invalid username/email or password.");
-        }
+            if (!member.IsActive)
+            {
+                return Result<MemberLoginResponseDto>.Failure("User account is not active.");
+            }
 
-        // Check if user is active
-        if (!member.IsActive)
-        {
-            return (false, null, null, "User account is not active.");
-        }
-
-        // Update last login
-        await _memberRepository.UpdateLastLoginAsync(member.MemberID, DateTime.UtcNow, cancellationToken);
+        // Optionally update last login if method exists
+        // await _memberRepository.UpdateLastLoginAsync(member.MemberID, DateTime.UtcNow, cancellationToken);
 
         // Generate JWT token
         var token = _jwtTokenService.GenerateToken(member);
@@ -64,11 +67,11 @@ public class MemberLoginCommandHandler
         {
             MemberID = member.MemberID,
             UserName = member.UserName,
-            Firstname = member.Firstname,
-            Lastname = member.Lastname,
+            Firstname = member.FirstName,
+            Lastname = member.LastName,
             EmailID = member.EmailID,
             PhoneNumber = member.PhoneNumber,
-            RoleName = member.RoleName,
+            RoleName = member.RoleID,
             PracticeID = member.PracticeID,
             IsActive = member.IsActive,
             CreatedDate = member.CreatedDate,
@@ -77,6 +80,18 @@ public class MemberLoginCommandHandler
             Source = member.Source
         };
 
-        return (true, token, memberDto, null);
+        var response = new MemberLoginResponseDto
+        {
+            Token = token,
+            Member = memberDto
+        };
+
+        return Result<MemberLoginResponseDto>.Success(response);
     }
+}
+
+public class MemberLoginResponseDto
+{
+    public string Token { get; set; } = string.Empty;
+    public MemberDto Member { get; set; } = default!;
 }

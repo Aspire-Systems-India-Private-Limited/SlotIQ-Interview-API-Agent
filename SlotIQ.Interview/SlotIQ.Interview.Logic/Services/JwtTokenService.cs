@@ -42,7 +42,7 @@ public class JwtTokenService : IJwtTokenService
             new Claim(JwtRegisteredClaimNames.Sub, member.MemberID.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, member.EmailID),
             new Claim(ClaimTypes.Name, member.UserName),
-            new Claim(ClaimTypes.Role, member.RoleName.ToString()),
+            new Claim(ClaimTypes.Role, member.RoleID.ToString()),
             new Claim("MemberID", member.MemberID.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
