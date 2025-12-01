@@ -10,7 +10,6 @@ public enum MemberRoleEnum
 {
     MasterAdmin = 1,
     PracticeAdmin = 2,
-    TechPanelMember = 3,
-    TAAdmin = 4,
-    TAPanelMember = 5
+    TechTeamMember = 3,
+    TATeamAdmin = 4
 }
