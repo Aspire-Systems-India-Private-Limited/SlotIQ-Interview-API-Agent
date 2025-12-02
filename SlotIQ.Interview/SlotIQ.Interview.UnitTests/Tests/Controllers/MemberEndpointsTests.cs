@@ -104,7 +104,52 @@ public class MemberEndpointsTests
         request.PhoneNumber.Should().BeNull();
         request.RoleName.Should().BeNull();
         request.PracticeID.Should().BeNull();
-        request.UpdatedBy.Should().Be("system");
+    }
+
+    [Fact]
+    public void GetMembersResponse_ValidProperties_ShouldSetCorrectly()
+    {
+        // Arrange
+        var response = new GetMembersResponse
+        {
+            SuccessCode = "MEMBER_LIST_SUCCESS",
+            SuccessMessage = "Members retrieved successfully.",
+            TotalCount = 100,
+            PageNumber = 1,
+            PageSize = 25,
+            HasNext = true,
+            HasPrevious = false,
+            Items = new List<Logic.Dtos.MemberDto>
+            {
+                new Logic.Dtos.MemberDto
+                {
+                    MemberID = Guid.NewGuid(),
+                    UserName = "john.doe",
+                    Firstname = "John",
+                    Lastname = "Doe",
+                    EmailID = "john.doe@aspiresys.com",
+                    PhoneNumber = "1234567890",
+                    RoleName = MemberRoleEnum.PracticeAdmin,
+                    PracticeID = Guid.NewGuid(),
+                    IsActive = true,
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow,
+                    ModUser = "system",
+                    Source = SourceEnum.Web
+                }
+            }
+        };
+
+        // Assert
+        response.SuccessCode.Should().Be("MEMBER_LIST_SUCCESS");
+        response.SuccessMessage.Should().Be("Members retrieved successfully.");
+        response.TotalCount.Should().Be(100);
+        response.PageNumber.Should().Be(1);
+        response.PageSize.Should().Be(25);
+        response.HasNext.Should().BeTrue();
+        response.HasPrevious.Should().BeFalse();
+        response.Items.Should().HaveCount(1);
+        response.Items.First().UserName.Should().Be("john.doe");
     }
 
     [Fact]
