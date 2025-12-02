@@ -76,7 +76,8 @@ public class MemberLoginCommandHandler
             IsActive = member.IsActive,
             CreatedDate = member.CreatedDate,
             ModifiedDate = member.ModifiedDate,
-            ModUser = member.ModUser,
+            ModifiedBy = member.ModifiedBy,
+            CreatedBy =member.CreatedBy,
             Source = member.Source
         };
 

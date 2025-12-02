@@ -15,6 +15,7 @@ public record MemberDto
     public bool IsActive { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime ModifiedDate { get; set; }
-    public string ModUser { get; set; } = string.Empty;
+    public string CreatedBy { get; set; } = string.Empty;
+    public string ModifiedBy { get; set; } = string.Empty;
     public SourceEnum Source { get; set; }
 }

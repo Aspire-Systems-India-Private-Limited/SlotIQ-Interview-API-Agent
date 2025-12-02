@@ -12,7 +12,8 @@ public class MemberMappingProfile : Profile
     public MemberMappingProfile()
     {
         // Entity to DTO mappings
-        CreateMap<Member, MemberDto>();
+        CreateMap<Member, MemberDto>()
+            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.RoleID));
 
         // DTO to Entity mappings
         CreateMap<CreateMemberDto, Member>()
