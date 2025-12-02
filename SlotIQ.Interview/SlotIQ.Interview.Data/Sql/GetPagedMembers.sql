@@ -27,6 +27,7 @@ ORDER BY
     CASE WHEN @SortBy = 'Lastname' AND @SortOrder = 'DESC' THEN LastName END DESC,
     CASE WHEN @SortBy = 'EmailAddress' AND @SortOrder = 'ASC' THEN EmailID END ASC,
     CASE WHEN @SortBy = 'EmailAddress' AND @SortOrder = 'DESC' THEN EmailID END DESC,
+    -- Note: RoleName and PracticeName sort by ID as joining lookup tables would require significant changes
     CASE WHEN @SortBy = 'RoleName' AND @SortOrder = 'ASC' THEN RoleID END ASC,
     CASE WHEN @SortBy = 'RoleName' AND @SortOrder = 'DESC' THEN RoleID END DESC,
     CASE WHEN @SortBy = 'PracticeName' AND @SortOrder = 'ASC' THEN PracticeID END ASC,
