@@ -346,7 +346,8 @@ public class UpdateMemberCommandHandlerTests
             IsActive = true,
             CreatedDate = DateTime.UtcNow,
             ModifiedDate = DateTime.UtcNow,
-            ModUser = "system",
+            CreatedBy = "system",
+            ModifiedBy = "system",
             Source = SourceEnum.API
         };
     }

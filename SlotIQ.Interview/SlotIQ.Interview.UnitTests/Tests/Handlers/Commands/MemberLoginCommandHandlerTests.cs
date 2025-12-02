@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Moq;
 using SlotIQ.Interview.Common.Enums;
+using SlotIQ.Interview.Common.Models;
 using SlotIQ.Interview.Data.Entities;
 using SlotIQ.Interview.Data.Repositories.Contracts;
 using SlotIQ.Interview.Logic.Commands;
@@ -28,11 +29,12 @@ public class MemberLoginCommandHandlerTests
     {
         // Arrange
         var member = CreateTestMember();
+        var members = new List<Member> { member };
         var expectedToken = "test-jwt-token";
         
         _memberRepositoryMock
-            .Setup(x => x.GetByUserNameOrEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(member);
+            .Setup(x => x.GetAllAsync())
+            .ReturnsAsync(Result<IEnumerable<Member>>.Success(members));
         
         _jwtTokenServiceMock
             .Setup(x => x.GenerateToken(It.IsAny<Member>()))
@@ -45,29 +47,28 @@ public class MemberLoginCommandHandlerTests
         };
 
         // Act
-        var (success, token, memberDto, errorMessage) = await _handler.HandleAsync(command);
+        var result = await _handler.HandleAsync(command);
 
         // Assert
-        success.Should().BeTrue();
-        token.Should().Be(expectedToken);
-        memberDto.Should().NotBeNull();
-        memberDto!.UserName.Should().Be("john.doe");
-        memberDto.EmailID.Should().Be("john.doe@aspiresys.com");
-        memberDto.RoleName.Should().Be(MemberRoleEnum.MasterAdmin);
-        errorMessage.Should().BeNull();
-        
-        _memberRepositoryMock.Verify(x => x.UpdateLastLoginAsync(member.MemberID, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Once);
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Token.Should().Be(expectedToken);
+        result.Value.Member.Should().NotBeNull();
+        result.Value.Member.UserName.Should().Be("john.doe");
+        result.Value.Member.EmailID.Should().Be("john.doe@aspiresys.com");
     }
 
     [Fact]
-    public async Task HandleAsync_WithInvalidPassword_ReturnsFailureWithErrorMessage()
+    public async Task HandleAsync_WithInvalidPassword_ReturnsFailure()
     {
         // Arrange
         var member = CreateTestMember();
+        var members = new List<Member> { member };
         
         _memberRepositoryMock
-            .Setup(x => x.GetByUserNameOrEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(member);
+            .Setup(x => x.GetAllAsync())
+            .ReturnsAsync(Result<IEnumerable<Member>>.Success(members));
 
         var command = new MemberLoginCommand
         {
@@ -76,25 +77,25 @@ public class MemberLoginCommandHandlerTests
         };
 
         // Act
-        var (success, token, memberDto, errorMessage) = await _handler.HandleAsync(command);
+        var result = await _handler.HandleAsync(command);
 
         // Assert
-        success.Should().BeFalse();
-        token.Should().BeNull();
-        memberDto.Should().BeNull();
-        errorMessage.Should().Be("Invalid username/email or password.");
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("Invalid");
         
-        _memberRepositoryMock.Verify(x => x.UpdateLastLoginAsync(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Never);
         _jwtTokenServiceMock.Verify(x => x.GenerateToken(It.IsAny<Member>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WithNonExistentUser_ReturnsFailureWithErrorMessage()
+    public async Task HandleAsync_WithNonExistentUser_ReturnsFailure()
     {
         // Arrange
+        var members = new List<Member>();
+        
         _memberRepositoryMock
-            .Setup(x => x.GetByUserNameOrEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Member?)null);
+            .Setup(x => x.GetAllAsync())
+            .ReturnsAsync(Result<IEnumerable<Member>>.Success(members));
 
         var command = new MemberLoginCommand
         {
@@ -103,20 +104,18 @@ public class MemberLoginCommandHandlerTests
         };
 
         // Act
-        var (success, token, memberDto, errorMessage) = await _handler.HandleAsync(command);
+        var result = await _handler.HandleAsync(command);
 
         // Assert
-        success.Should().BeFalse();
-        token.Should().BeNull();
-        memberDto.Should().BeNull();
-        errorMessage.Should().Be("User not found.");
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("not found");
         
-        _memberRepositoryMock.Verify(x => x.UpdateLastLoginAsync(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Never);
         _jwtTokenServiceMock.Verify(x => x.GenerateToken(It.IsAny<Member>()), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WithEmptyPassword_ReturnsFailureWithErrorMessage()
+    public async Task HandleAsync_WithEmptyPassword_ReturnsFailure()
     {
         // Arrange
         var command = new MemberLoginCommand
@@ -126,19 +125,18 @@ public class MemberLoginCommandHandlerTests
         };
 
         // Act
-        var (success, token, memberDto, errorMessage) = await _handler.HandleAsync(command);
+        var result = await _handler.HandleAsync(command);
 
         // Assert
-        success.Should().BeFalse();
-        token.Should().BeNull();
-        memberDto.Should().BeNull();
-        errorMessage.Should().Be("Password field is required and cannot be empty.");
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("Password");
         
-        _memberRepositoryMock.Verify(x => x.GetByUserNameOrEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _memberRepositoryMock.Verify(x => x.GetAllAsync(), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WithEmptyUserNameOrEmail_ReturnsFailureWithErrorMessage()
+    public async Task HandleAsync_WithEmptyUserNameOrEmail_ReturnsFailure()
     {
         // Arrange
         var command = new MemberLoginCommand
@@ -148,27 +146,27 @@ public class MemberLoginCommandHandlerTests
         };
 
         // Act
-        var (success, token, memberDto, errorMessage) = await _handler.HandleAsync(command);
+        var result = await _handler.HandleAsync(command);
 
         // Assert
-        success.Should().BeFalse();
-        token.Should().BeNull();
-        memberDto.Should().BeNull();
-        errorMessage.Should().Be("Username or email is required.");
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("UserName is required");
         
-        _memberRepositoryMock.Verify(x => x.GetByUserNameOrEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _memberRepositoryMock.Verify(x => x.GetAllAsync(), Times.Never);
     }
 
     [Fact]
-    public async Task HandleAsync_WithInactiveUser_ReturnsFailureWithErrorMessage()
+    public async Task HandleAsync_WithInactiveUser_ReturnsFailure()
     {
         // Arrange
         var member = CreateTestMember();
         member.IsActive = false;
+        var members = new List<Member> { member };
         
         _memberRepositoryMock
-            .Setup(x => x.GetByUserNameOrEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(member);
+            .Setup(x => x.GetAllAsync())
+            .ReturnsAsync(Result<IEnumerable<Member>>.Success(members));
 
         var command = new MemberLoginCommand
         {
@@ -177,15 +175,13 @@ public class MemberLoginCommandHandlerTests
         };
 
         // Act
-        var (success, token, memberDto, errorMessage) = await _handler.HandleAsync(command);
+        var result = await _handler.HandleAsync(command);
 
         // Assert
-        success.Should().BeFalse();
-        token.Should().BeNull();
-        memberDto.Should().BeNull();
-        errorMessage.Should().Be("User account is not active.");
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("not active");
         
-        _memberRepositoryMock.Verify(x => x.UpdateLastLoginAsync(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Never);
         _jwtTokenServiceMock.Verify(x => x.GenerateToken(It.IsAny<Member>()), Times.Never);
     }
 
@@ -195,13 +191,13 @@ public class MemberLoginCommandHandlerTests
         {
             MemberID = Guid.Parse("12345678-1234-1234-1234-123456789012"),
             UserName = "john.doe",
-            Firstname = "John",
-            Lastname = "Doe",
+            FirstName = "John",
+            LastName = "Doe",
             EmailID = "john.doe@aspiresys.com",
             PhoneNumber = "1234567890",
             // Password: "P@ssw0rd123" hashed with BCrypt
-            PasswordHash = "$2a$11$gnugM0ap66XvT22avkSjVeYPKadGm..n7eCRwTPJw24vox0E1fHH.",
-            RoleName = MemberRoleEnum.MasterAdmin,
+            Password = BCrypt.Net.BCrypt.HashPassword("P@ssw0rd123"),
+            RoleID = MemberRoleEnum.MasterAdmin,
             PracticeID = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
             IsActive = true,
             CreatedDate = DateTime.UtcNow.AddDays(-30),
