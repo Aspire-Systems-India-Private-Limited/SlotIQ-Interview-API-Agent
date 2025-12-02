@@ -7,6 +7,7 @@ using SlotIQ.Interview.Logic;
 using SlotIQ.Interview.Logic.Commands;
 using SlotIQ.Interview.Logic.Dtos;
 using SlotIQ.Interview.Logic.Handlers.Commands;
+using SlotIQ.Interview.Logic.Handlers.Queries;
 using SlotIQ.Interview.Logic.Validators;
 
 namespace SlotIQ.Interview.API.Configuration;
@@ -34,6 +35,10 @@ public static class ServiceConfiguration
         services.AddScoped<UpdateMemberCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateMemberCommand, Result<MemberDto>>>(sp => 
             sp.GetRequiredService<UpdateMemberCommandHandler>());
+
+        // Query Handlers
+        services.AddScoped<GetMembersPagedQueryHandler>();
+        services.AddScoped<GetMemberByIdQueryHandler>();
 
         // Validators
         services.AddValidatorsFromAssemblyContaining<CreateMemberDtoValidator>();
