@@ -37,7 +37,7 @@ public class GetMemberByIdQueryHandler : IQueryHandler<GetMemberByIdQuery, Resul
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("Member with ID {MemberID} not found", query.Id);
-                return Result<MemberDto>.Failure(result.Error);
+                return Result<MemberDto>.Failure(result.Error ?? "Member not found");
             }
 
             var dto = _mapper.Map<MemberDto>(result.Value);
