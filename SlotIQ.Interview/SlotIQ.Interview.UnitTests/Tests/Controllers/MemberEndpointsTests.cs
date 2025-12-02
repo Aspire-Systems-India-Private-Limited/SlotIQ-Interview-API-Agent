@@ -104,6 +104,7 @@ public class MemberEndpointsTests
         request.PhoneNumber.Should().BeNull();
         request.RoleName.Should().BeNull();
         request.PracticeID.Should().BeNull();
+        request.UpdatedBy.Should().Be("system");
     }
 
     [Fact]
