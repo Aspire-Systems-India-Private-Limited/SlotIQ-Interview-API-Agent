@@ -8,6 +8,7 @@ public static class ErrorMessages
     // Success Messages
     public const string MemberOnboardSuccess = "User onboarded successfully.";
     public const string MemberUpdateSuccess = "Member details updated successfully.";
+    public const string MemberListSuccess = "Members retrieved successfully.";
     
     // Validation Error Messages
     public const string UserNameRequired = "UserName is required.";
@@ -56,6 +57,7 @@ public static class ErrorCodes
 {
     public const string MemberOnboardSuccess = "MEMBER_ONBOARD_SUCCESS";
     public const string MemberUpdateSuccess = "MEMBER_UPDATE_SUCCESS";
+    public const string MemberListSuccess = "MEMBER_LIST_SUCCESS";
     public const string UserOnboardFailure = "USER_ONBOARD_FAILURE";
     public const string ValidationError = "VALIDATION_ERROR";
     public const string DuplicateEntryError = "DUPLICATE_ENTRY_ERROR";

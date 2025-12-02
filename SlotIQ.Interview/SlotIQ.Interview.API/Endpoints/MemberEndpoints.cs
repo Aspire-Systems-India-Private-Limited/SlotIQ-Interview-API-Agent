@@ -2,10 +2,13 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using SlotIQ.Interview.API.Models;
 using SlotIQ.Interview.Common.Constants;
+using SlotIQ.Interview.Common.Enums;
 using SlotIQ.Interview.Common.Models;
 using SlotIQ.Interview.Logic.Commands;
 using SlotIQ.Interview.Logic.Dtos;
 using SlotIQ.Interview.Logic.Handlers.Commands;
+using SlotIQ.Interview.Logic.Handlers.Queries;
+using SlotIQ.Interview.Logic.Queries;
 
 namespace SlotIQ.Interview.API.Endpoints;
 
@@ -20,6 +23,16 @@ public static class MemberEndpoints
             .WithTags("Members")
             .WithOpenApi()
             .RequireAuthorization("MemberManagementPolicy");
+
+        group.MapGet("/", GetMembers)
+            .WithName("GetMembers")
+            .WithSummary("Get all members with pagination")
+            .WithDescription("Retrieve paginated list of members (FR#MAP-3)")
+            .Produces<ApiResponse<GetMembersResponse>>(200)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(403)
+            .Produces<ApiResponse<object>>(500);
 
         group.MapPost("/", CreateMember)
             .WithName("CreateMember")
@@ -45,6 +58,82 @@ public static class MemberEndpoints
             .Produces<ApiResponse<object>>(404)
             .Produces<ApiResponse<object>>(409)
             .Produces<ApiResponse<object>>(500);
+    }
+
+    private static async Task<Results<Ok<ApiResponse<GetMembersResponse>>, BadRequest<ApiResponse<object>>>> GetMembers(
+        GetMembersPagedQueryHandler handler,
+        HttpContext httpContext,
+        int pageNumber = 1,
+        int pageSize = 25,
+        string sortBy = "CreatedDate",
+        string sortOrder = "DESC",
+        bool? isActive = null,
+        MemberRoleEnum? roleName = null,
+        Guid? practiceID = null,
+        CancellationToken ct = default)
+    {
+        // Validate pagination parameters
+        if (pageNumber < 1)
+        {
+            return TypedResults.BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                ErrorMessage = "PageNumber must be greater than 0",
+                ErrorCode = ErrorCodes.ValidationError
+            });
+        }
+
+        if (pageSize < 1 || pageSize > 200)
+        {
+            return TypedResults.BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                ErrorMessage = "PageSize must be between 1 and 200",
+                ErrorCode = ErrorCodes.ValidationError
+            });
+        }
+
+        // Validate sortBy field (whitelist approach)
+        var validSortFields = new[] { "UserName", "Firstname", "Lastname", "EmailAddress", "RoleName", "PracticeName", "CreatedDate" };
+        if (!validSortFields.Contains(sortBy))
+        {
+            sortBy = "CreatedDate";
+        }
+
+        // Validate sortOrder
+        if (sortOrder != "ASC" && sortOrder != "DESC")
+        {
+            sortOrder = "DESC";
+        }
+
+        var query = new GetMembersPagedQuery(
+            pageNumber,
+            pageSize,
+            sortBy,
+            sortOrder,
+            isActive,
+            roleName,
+            practiceID);
+
+        var result = await handler.Handle(query, ct);
+
+        var response = new GetMembersResponse
+        {
+            SuccessCode = ErrorCodes.MemberListSuccess,
+            SuccessMessage = ErrorMessages.MemberListSuccess,
+            TotalCount = result.TotalCount,
+            PageNumber = result.PageNumber,
+            PageSize = result.PageSize,
+            HasNext = result.HasNextPage,
+            HasPrevious = result.HasPreviousPage,
+            Items = result.Items
+        };
+
+        return TypedResults.Ok(new ApiResponse<GetMembersResponse>
+        {
+            Success = true,
+            Data = response
+        });
     }
 
     private static async Task<Results<Created<ApiResponse<CreateMemberResponse>>, BadRequest<ApiResponse<object>>>> CreateMember(

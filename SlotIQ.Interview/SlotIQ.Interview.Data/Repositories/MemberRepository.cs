@@ -1,6 +1,7 @@
 using Dapper;
 using Microsoft.Extensions.Logging;
 using SlotIQ.Interview.Common.Constants;
+using SlotIQ.Interview.Common.Enums;
 using SlotIQ.Interview.Common.Models;
 using SlotIQ.Interview.Data.Entities;
 using SlotIQ.Interview.Data.Repositories.Contracts;
@@ -93,6 +94,60 @@ public class MemberRepository : IMemberRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving paged members");
+            return new PaginatedResult<Member>();
+        }
+    }
+
+    public async Task<PaginatedResult<Member>> GetMembersPagedAsync(
+        int pageNumber,
+        int pageSize,
+        string sortBy,
+        string sortOrder,
+        bool? isActive,
+        MemberRoleEnum? roleName,
+        Guid? practiceID)
+    {
+        try
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var query = _queryLoader.LoadQuery("GetMembersPaged");
+
+            var offset = (pageNumber - 1) * pageSize;
+            var parameters = new
+            {
+                Offset = offset,
+                PageSize = pageSize,
+                SortBy = sortBy,
+                SortOrder = sortOrder,
+                IsActive = isActive,
+                RoleID = roleName.HasValue ? (int)roleName.Value : (int?)null,
+                PracticeID = practiceID
+            };
+
+            var entities = await connection.QueryAsync<Member>(query, parameters);
+
+            var countQuery = _queryLoader.LoadQuery("GetMembersCount");
+            var countParameters = new
+            {
+                IsActive = isActive,
+                RoleID = roleName.HasValue ? (int)roleName.Value : (int?)null,
+                PracticeID = practiceID
+            };
+            var totalCount = await connection.ExecuteScalarAsync<int>(countQuery, countParameters);
+
+            _logger.LogInformation("Retrieved {Count} members (page {PageNumber} of {PageSize})", entities.Count(), pageNumber, pageSize);
+
+            return new PaginatedResult<Member>
+            {
+                Items = entities,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving paged members with filters");
             return new PaginatedResult<Member>();
         }
     }
