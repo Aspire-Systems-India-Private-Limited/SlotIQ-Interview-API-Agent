@@ -34,6 +34,17 @@ public static class MemberEndpoints
             .Produces<ApiResponse<object>>(403)
             .Produces<ApiResponse<object>>(500);
 
+        group.MapGet("/{memberid:guid}", GetMemberById)
+            .WithName("GetMemberById")
+            .WithSummary("Get member by ID")
+            .WithDescription("Retrieve specific member details (FR#MAP-4)")
+            .Produces<ApiResponse<GetMemberResponse>>(200)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(403)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
+
         group.MapPost("/", CreateMember)
             .WithName("CreateMember")
             .WithSummary("Onboard new member")
@@ -221,6 +232,50 @@ public static class MemberEndpoints
         };
 
         return TypedResults.Ok(new ApiResponse<UpdateMemberResponse>
+        {
+            Success = true,
+            Data = response
+        });
+    }
+
+    private static async Task<Results<Ok<ApiResponse<GetMemberResponse>>, BadRequest<ApiResponse<object>>, NotFound<ApiResponse<object>>>> GetMemberById(
+        Guid memberid,
+        GetMemberByIdQueryHandler handler,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        var query = new GetMemberByIdQuery(memberid);
+        var result = await handler.Handle(query, ct);
+
+        if (!result.IsSuccess)
+        {
+            // Check if it's a not found error
+            if (result.Error == ErrorMessages.MemberNotFound)
+            {
+                return TypedResults.NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    ErrorMessage = result.Error,
+                    ErrorCode = ErrorCodes.ResourceNotFoundError
+                });
+            }
+
+            return TypedResults.BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                ErrorMessage = result.Error,
+                ErrorCode = ErrorCodes.ValidationError
+            });
+        }
+
+        var response = new GetMemberResponse
+        {
+            SuccessCode = ErrorCodes.MemberGetSuccess,
+            SuccessMessage = ErrorMessages.MemberGetSuccess,
+            Member = result.Value
+        };
+
+        return TypedResults.Ok(new ApiResponse<GetMemberResponse>
         {
             Success = true,
             Data = response
