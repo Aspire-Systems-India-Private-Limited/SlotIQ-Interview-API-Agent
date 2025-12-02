@@ -51,6 +51,8 @@ builder.Services.AddAuthorization(options =>
 
 // Register repositories
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
+// Register query handlers
+builder.Services.AddScoped<SlotIQ.Interview.Logic.Handlers.Queries.GetMembersPagedQueryHandler>();
 
 // Register services
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();

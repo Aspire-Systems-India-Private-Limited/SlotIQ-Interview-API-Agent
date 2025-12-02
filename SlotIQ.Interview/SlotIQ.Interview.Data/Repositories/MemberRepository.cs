@@ -110,7 +110,7 @@ public class MemberRepository : IMemberRepository
         try
         {
             using var connection = _connectionFactory.CreateConnection();
-            var query = _queryLoader.LoadQuery("GetMembersPaged");
+            var query = _queryLoader.LoadQuery("GetPagedMembers");
 
             var offset = (pageNumber - 1) * pageSize;
             var parameters = new

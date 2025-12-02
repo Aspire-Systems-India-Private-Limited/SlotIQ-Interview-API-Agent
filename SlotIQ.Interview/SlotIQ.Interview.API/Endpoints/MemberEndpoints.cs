@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
 using SlotIQ.Interview.API.Models;
 using SlotIQ.Interview.Common.Constants;
@@ -61,7 +62,7 @@ public static class MemberEndpoints
     }
 
     private static async Task<Results<Ok<ApiResponse<GetMembersResponse>>, BadRequest<ApiResponse<object>>>> GetMembers(
-        GetMembersPagedQueryHandler handler,
+        [FromServices] GetMembersPagedQueryHandler handler,
         HttpContext httpContext,
         int pageNumber = 1,
         int pageSize = 25,
