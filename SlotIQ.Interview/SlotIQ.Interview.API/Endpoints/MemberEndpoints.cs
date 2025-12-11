@@ -75,6 +75,7 @@ public static class MemberEndpoints
             .WithName("DeactivateMember")
             .WithSummary("Deactivate member")
             .WithDescription("Deactivate member (soft delete) (FR#MAP-5)")
+            .Accepts<DeactivateMemberRequest>("application/json")
             .Produces<ApiResponse<DeactivateMemberResponse>>(200)
             .Produces<ApiResponse<object>>(400)
             .Produces<ApiResponse<object>>(401)
@@ -296,17 +297,15 @@ public static class MemberEndpoints
 
     private static async Task<Results<Ok<ApiResponse<DeactivateMemberResponse>>, BadRequest<ApiResponse<object>>, NotFound<ApiResponse<object>>>> DeactivateMember(
         Guid memberid,
+        DeactivateMemberRequest request,
         DeactivateMemberCommandHandler handler,
         HttpContext httpContext,
         CancellationToken ct)
     {
         // TODO: Get UpdatedBy from authenticated user context
-        var currentUser = "system"; // Placeholder - should come from authentication
+        var currentUser = string.IsNullOrEmpty(request.UpdatedBy) ? "system" : request.UpdatedBy;
 
-        // For now, using default source value. In production, this should come from the request
-        var source = SourceEnum.Web;
-
-        var command = new DeactivateMemberCommand(memberid, currentUser, source);
+        var command = new DeactivateMemberCommand(memberid, currentUser, request.Source);
         var result = await handler.Handle(command, ct);
 
         if (!result.IsSuccess)
