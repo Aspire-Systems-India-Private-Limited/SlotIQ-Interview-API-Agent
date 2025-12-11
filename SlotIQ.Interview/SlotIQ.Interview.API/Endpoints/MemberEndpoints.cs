@@ -70,6 +70,18 @@ public static class MemberEndpoints
             .Produces<ApiResponse<object>>(404)
             .Produces<ApiResponse<object>>(409)
             .Produces<ApiResponse<object>>(500);
+
+        group.MapDelete("/{memberid:guid}", DeactivateMember)
+            .WithName("DeactivateMember")
+            .WithSummary("Deactivate member")
+            .WithDescription("Deactivate member (soft delete) (FR#MAP-5)")
+            .Accepts<DeactivateMemberRequest>("application/json")
+            .Produces<ApiResponse<DeactivateMemberResponse>>(200)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(403)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
     }
 
     private static async Task<Results<Ok<ApiResponse<GetMembersResponse>>, BadRequest<ApiResponse<object>>>> GetMembers(
@@ -277,6 +289,54 @@ public static class MemberEndpoints
         };
 
         return TypedResults.Ok(new ApiResponse<GetMemberResponse>
+        {
+            Success = true,
+            Data = response
+        });
+    }
+
+    private static async Task<Results<Ok<ApiResponse<DeactivateMemberResponse>>, BadRequest<ApiResponse<object>>, NotFound<ApiResponse<object>>>> DeactivateMember(
+        Guid memberid,
+        DeactivateMemberRequest request,
+        DeactivateMemberCommandHandler handler,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        // TODO: Get UpdatedBy from authenticated user context
+        var currentUser = string.IsNullOrEmpty(request.UpdatedBy) ? "system" : request.UpdatedBy;
+
+        var command = new DeactivateMemberCommand(memberid, currentUser, request.Source);
+        var result = await handler.Handle(command, ct);
+
+        if (!result.IsSuccess)
+        {
+            // Check if it's a not found error
+            if (result.Error == ErrorMessages.MemberNotFoundOrInactive || result.Error == ErrorMessages.MemberNotFound)
+            {
+                return TypedResults.NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    ErrorMessage = result.Error,
+                    ErrorCode = ErrorCodes.ResourceNotFoundError
+                });
+            }
+
+            return TypedResults.BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                ErrorMessage = result.Error,
+                ErrorCode = ErrorCodes.ValidationError
+            });
+        }
+
+        var response = new DeactivateMemberResponse
+        {
+            MemberID = Guid.Parse(result.Value!),
+            SuccessCode = ErrorCodes.MemberDeactivateSuccess,
+            SuccessMessage = ErrorMessages.MemberDeactivateSuccess
+        };
+
+        return TypedResults.Ok(new ApiResponse<DeactivateMemberResponse>
         {
             Success = true,
             Data = response

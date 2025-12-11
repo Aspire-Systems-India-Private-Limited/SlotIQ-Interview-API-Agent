@@ -23,6 +23,7 @@ public interface IMemberRepository
     Task<Result<Member>> AddAsync(Member entity);
     Task<Result<Member>> UpdateAsync(Member entity);
     Task<Result<string>> DeleteAsync(Guid id);
+    Task<Result<string>> DeactivateMemberAsync(Guid memberID, string modifiedBy, SourceEnum source);
     Task<bool> UserNameExistsAsync(string userName);
     Task<bool> EmailExistsAsync(string email);
     Task<bool> PhoneNumberExistsAsync(string phoneNumber);

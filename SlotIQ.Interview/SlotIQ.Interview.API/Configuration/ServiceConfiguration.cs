@@ -36,6 +36,10 @@ public static class ServiceConfiguration
         services.AddScoped<ICommandHandler<UpdateMemberCommand, Result<MemberDto>>>(sp => 
             sp.GetRequiredService<UpdateMemberCommandHandler>());
 
+        services.AddScoped<DeactivateMemberCommandHandler>();
+        services.AddScoped<ICommandHandler<DeactivateMemberCommand, Result<string>>>(sp => 
+            sp.GetRequiredService<DeactivateMemberCommandHandler>());
+
         // Query Handlers
         services.AddScoped<GetMembersPagedQueryHandler>();
         services.AddScoped<GetMemberByIdQueryHandler>();
