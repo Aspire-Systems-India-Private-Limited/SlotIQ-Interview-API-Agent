@@ -256,6 +256,39 @@ public class MemberRepository : IMemberRepository
         }
     }
 
+    public async Task<Result<string>> DeactivateMemberAsync(Guid memberID, string modifiedBy, SourceEnum source)
+    {
+        try
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var query = _queryLoader.LoadQuery("DeactivateMember");
+
+            var parameters = new
+            {
+                MemberID = memberID,
+                ModifiedDate = DateTime.UtcNow,
+                ModifiedBy = modifiedBy,
+                Source = (int)source
+            };
+
+            var rowsAffected = await connection.ExecuteAsync(query, parameters);
+
+            if (rowsAffected == 0)
+            {
+                _logger.LogWarning("Member with ID {MemberID} not found or already inactive", memberID);
+                return Result<string>.Failure(ErrorMessages.MemberNotFoundOrInactive);
+            }
+
+            _logger.LogInformation("Member {MemberID} deactivated successfully", memberID);
+            return Result<string>.Success(memberID.ToString());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deactivating member {MemberID}", memberID);
+            return Result<string>.Failure(ErrorMessages.SystemError);
+        }
+    }
+
     public async Task<bool> UserNameExistsAsync(string userName)
     {
         try

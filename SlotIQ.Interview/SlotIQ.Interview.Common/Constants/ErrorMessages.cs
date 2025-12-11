@@ -8,6 +8,7 @@ public static class ErrorMessages
     // Success Messages
     public const string MemberOnboardSuccess = "User onboarded successfully.";
     public const string MemberUpdateSuccess = "Member details updated successfully.";
+    public const string MemberDeactivateSuccess = "Member deactivated successfully.";
     public const string MemberListSuccess = "Members retrieved successfully.";
     public const string MemberGetSuccess = "Member details retrieved successfully.";
     
@@ -41,6 +42,7 @@ public static class ErrorMessages
     public const string InvalidRole = "Resource not found.Invalid Role";
     public const string InvalidSource = "Resource not found.Invalid Source";
     public const string MemberNotFound = "Member not found";
+    public const string MemberNotFoundOrInactive = "Member not found or already inactive";
     
     // System Errors
     public const string UserOnboardFailure = "User onboard failed.";
@@ -58,6 +60,7 @@ public static class ErrorCodes
 {
     public const string MemberOnboardSuccess = "MEMBER_ONBOARD_SUCCESS";
     public const string MemberUpdateSuccess = "MEMBER_UPDATE_SUCCESS";
+    public const string MemberDeactivateSuccess = "MEMBER_DEACTIVATE_SUCCESS";
     public const string MemberListSuccess = "MEMBER_LIST_SUCCESS";
     public const string MemberGetSuccess = "MEMBER_GET_SUCCESS";
     public const string UserOnboardFailure = "USER_ONBOARD_FAILURE";
